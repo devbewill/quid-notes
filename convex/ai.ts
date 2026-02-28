@@ -1,7 +1,7 @@
 import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 /**
  * Server-side Gemini call — never exposes the API key to the client.
@@ -35,13 +35,10 @@ Return ONLY a JSON array of 3 strings. No explanation.
 Notes:
 ${notesContent}`;
 
-    const ai = new GoogleGenAI({ apiKey, httpOptions: { apiVersion: "v1" } });
-    const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
-      contents: prompt,
-    });
-
-    const text = (response.text ?? "").trim();
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+    const result = await model.generateContent(prompt);
+    const text = (result.response.text() ?? "").trim();
 
     // Strip markdown code fences if present
     const cleaned = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
