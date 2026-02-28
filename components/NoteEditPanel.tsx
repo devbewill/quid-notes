@@ -26,7 +26,7 @@ export function NoteEditPanel({ note, onClose }: Props) {
   const [title, setTitle] = useState(note.title);
   const [text, setText] = useState(note.text);
   const [status, setStatus] = useState(note.status);
-  const [startDate, setStartDate] = useState(tsToDate(note.startDate));
+  const [startDate, setStartDate] = useState(tsToDate(note.startDate ?? note.createdAt));
   const [dueDate, setDueDate] = useState(tsToDate(note.dueDate));
 
   // Re-sync when a different note is selected
@@ -34,7 +34,7 @@ export function NoteEditPanel({ note, onClose }: Props) {
     setTitle(note.title);
     setText(note.text);
     setStatus(note.status);
-    setStartDate(tsToDate(note.startDate));
+    setStartDate(tsToDate(note.startDate ?? note.createdAt));
     setDueDate(tsToDate(note.dueDate));
   }, [note._id]);
 
