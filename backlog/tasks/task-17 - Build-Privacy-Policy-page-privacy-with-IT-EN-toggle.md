@@ -1,9 +1,10 @@
 ---
 id: TASK-17
 title: Build Privacy Policy page (/privacy) with IT/EN toggle
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-02-28 09:56'
+updated_date: '2026-02-28 10:40'
 labels:
   - frontend
   - gdpr

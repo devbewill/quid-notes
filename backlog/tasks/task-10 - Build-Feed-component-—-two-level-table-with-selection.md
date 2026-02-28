@@ -1,9 +1,10 @@
 ---
 id: TASK-10
 title: Build Feed component — two-level table with selection
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-02-28 09:54'
+updated_date: '2026-02-28 10:39'
 labels:
   - frontend
   - core

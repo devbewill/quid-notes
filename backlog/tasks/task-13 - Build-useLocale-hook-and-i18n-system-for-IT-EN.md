@@ -1,9 +1,10 @@
 ---
 id: TASK-13
 title: Build useLocale hook and i18n system for IT/EN
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-02-28 09:55'
+updated_date: '2026-02-28 10:40'
 labels:
   - frontend
   - i18n

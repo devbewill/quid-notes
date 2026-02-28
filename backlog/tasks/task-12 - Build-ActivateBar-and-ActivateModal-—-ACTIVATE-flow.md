@@ -1,9 +1,10 @@
 ---
 id: TASK-12
 title: Build ActivateBar and ActivateModal — ACTIVATE flow
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-02-28 09:54'
+updated_date: '2026-02-28 10:40'
 labels:
   - frontend
   - core

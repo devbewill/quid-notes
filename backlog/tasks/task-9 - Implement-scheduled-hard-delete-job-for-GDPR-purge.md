@@ -1,9 +1,10 @@
 ---
 id: TASK-9
 title: Implement scheduled hard-delete job for GDPR purge
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-02-28 09:53'
+updated_date: '2026-02-28 10:39'
 labels:
   - backend
   - gdpr

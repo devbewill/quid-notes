@@ -1,9 +1,10 @@
 ---
 id: TASK-4
 title: Implement Convex Auth with email/password and Google OAuth
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-02-28 09:52'
+updated_date: '2026-02-28 10:39'
 labels:
   - backend
   - auth

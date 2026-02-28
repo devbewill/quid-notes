@@ -1,9 +1,10 @@
 ---
 id: TASK-5
 title: Implement Convex functions for notes (queries and mutations)
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-02-28 09:52'
+updated_date: '2026-02-28 10:39'
 labels:
   - backend
   - notes

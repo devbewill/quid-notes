@@ -1,9 +1,10 @@
 ---
 id: TASK-14
 title: Build ConsentBanner component
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-02-28 09:55'
+updated_date: '2026-02-28 10:40'
 labels:
   - frontend
   - gdpr

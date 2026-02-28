@@ -1,9 +1,10 @@
 ---
 id: TASK-11
 title: Build QuickAdd component — note creation input bar
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-02-28 09:54'
+updated_date: '2026-02-28 10:39'
 labels:
   - frontend
   - core
