@@ -66,10 +66,16 @@ export default function Home() {
   }, [sidebarNotes]);
 
   useEffect(() => {
+    // Redirect if completely unauthenticated
     if (!isLoading && !isAuthenticated) {
       router.push("/signin");
+      return;
     }
-  }, [isLoading, isAuthenticated, router]);
+    // Redirect if authenticated but the user record is missing/soft-deleted
+    if (!isLoading && isAuthenticated && user === null) {
+      router.push("/signin");
+    }
+  }, [isLoading, isAuthenticated, user, router]);
 
 
   const handleSelect = (id: Id<"notes">) => {

@@ -154,3 +154,55 @@ export const exportData = action({
     return JSON.stringify(exportPayload, null, 2);
   },
 });
+
+/**
+ * IMMEDIATELY hard-delete all user data and account.
+ * This should ONLY be used for testing or explicit user confirmation.
+ */
+export const hardDeleteImmediate = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // We get the ID directly so we can delete users who are already soft-deleted
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) throw new Error("UNAUTHENTICATED");
+
+    // 1. Delete all tasks
+    const tasks = await ctx.db
+      .query("tasks")
+      .withIndex("by_owner", (q) => q.eq("ownerId", userId))
+      .collect();
+    for (const task of tasks) {
+      await ctx.db.delete(task._id);
+    }
+
+    // 2. Delete all notes
+    const notes = await ctx.db
+      .query("notes")
+      .withIndex("by_owner", (q) => q.eq("ownerId", userId))
+      .collect();
+    for (const note of notes) {
+      await ctx.db.delete(note._id);
+    }
+
+    // 3. Delete auth sessions
+    const authSessions = await ctx.db
+      .query("authSessions")
+      .withIndex("userId", (q) => q.eq("userId", userId))
+      .collect();
+    for (const session of authSessions) {
+      await ctx.db.delete(session._id);
+    }
+
+    // 4. Delete auth accounts
+    const authAccounts = await ctx.db
+      .query("authAccounts")
+      .withIndex("userIdAndProvider", (q) => q.eq("userId", userId))
+      .collect();
+    for (const account of authAccounts) {
+      await ctx.db.delete(account._id);
+    }
+
+    // 5. Delete the user document itself
+    await ctx.db.delete(userId);
+  },
+});

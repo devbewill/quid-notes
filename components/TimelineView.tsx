@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useConvexAuth } from "convex/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import type { NoteDoc, TaskDoc } from "@/lib/types";
@@ -287,8 +287,10 @@ interface TimelineViewProps {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export function TimelineView({ onEdit, onEditTask, search, typeFilter, tagFilter, statusFilter, globalTagColors }: TimelineViewProps) {
-  const topNotes = useQuery(api.notes.listTopLevel);
-  const tasks = useQuery(api.tasks.listAll);
+  const { isAuthenticated } = useConvexAuth();
+  const user = useQuery(api.users.current, isAuthenticated ? {} : "skip");
+  const topNotes = useQuery(api.notes.listTopLevel, isAuthenticated && user ? {} : "skip");
+  const tasks = useQuery(api.tasks.listAll, isAuthenticated && user ? {} : "skip");
 
   const buckets = useMemo(() => {
     if (!topNotes || !tasks) return null;

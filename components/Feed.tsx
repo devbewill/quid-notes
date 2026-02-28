@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useConvexAuth } from "convex/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -312,8 +312,11 @@ function TaskRow({ task, onEdit, onEditTask, selected, onSelectTask }: {
 // ─── Feed ─────────────────────────────────────────────────────────────────────
 export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search, typeFilter, tagFilter, statusFilter, selectedTaskIds, onSelectTask }: FeedProps) {
   const { t } = useLocale();
-  const topNotes = useQuery(api.notes.listTopLevel);
-  const tasks = useQuery(api.tasks.listAll);
+  const { isAuthenticated } = useConvexAuth();
+  const user = useQuery(api.users.current, isAuthenticated ? {} : "skip");
+
+  const topNotes = useQuery(api.notes.listTopLevel, isAuthenticated && user ? {} : "skip");
+  const tasks = useQuery(api.tasks.listAll, isAuthenticated && user ? {} : "skip");
 
   const [sort, setSort] = useState<SortState>(null);
 

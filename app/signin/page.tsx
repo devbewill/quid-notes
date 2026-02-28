@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function SignInPage() {
-  const { signIn } = useAuthActions();
+  const { signIn, signOut } = useAuthActions();
   const router = useRouter();
   const [flow, setFlow] = useState<"signIn" | "signUp">("signIn");
   const [email, setEmail] = useState("");
@@ -16,6 +18,11 @@ export default function SignInPage() {
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const { isAuthenticated } = useConvexAuth();
+  const deletionStatus = useQuery(api.users.getDeletionStatus, isAuthenticated ? {} : "skip");
+  const cancelDeletion = useMutation(api.users.cancelDeletion);
+  const hardDelete = useMutation(api.users.hardDeleteImmediate);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +43,75 @@ export default function SignInPage() {
   };
 
   const handleGoogle = () => signIn("google").then(() => router.push("/"));
+
+  const handleRestore = async () => {
+    setLoading(true);
+    try {
+      await cancelDeletion();
+      router.push("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossibile recuperare l'account");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleHardDelete = async () => {
+    if (!confirm("Sei sicuro? Questa azione distruggerà IMMEDIATAMENTE tutti i tuoi dati, le tue note e il tuo account. L'azione è irreversibile.")) return;
+    setLoading(true);
+    try {
+      await hardDelete();
+      await signOut();
+      setFlow("signIn");
+      setError("Account eliminato con successo. Puoi registrarti di nuovo come nuovo utente.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossibile eliminare l'account");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // If the user's account is pending deletion, show the recovery UI
+  if (isAuthenticated && deletionStatus) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center px-4">
+        <div className="w-full max-w-sm text-center">
+          <h1 className="text-2xl font-semibold tracking-tight mb-2">Account in Eliminazione</h1>
+          <p className="text-sm text-muted mb-8">
+            Il tuo account è attualmente programmato per l'eliminazione definitiva il{" "}
+            <span className="text-text font-medium">
+              {deletionStatus.deletionScheduledAt ? new Date(deletionStatus.deletionScheduledAt).toLocaleDateString() : "presto"}
+            </span>.
+          </p>
+
+          {error && <p className="text-xs text-red-400 mb-4">{error}</p>}
+
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={handleRestore}
+              disabled={loading}
+              className="w-full bg-accent text-bg font-medium rounded-full py-2.5 text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {loading ? "…" : "Recupera il mio account"}
+            </button>
+            <button
+              onClick={handleHardDelete}
+              disabled={loading}
+              className="w-full bg-rose-500/10 text-rose-500 font-medium border border-rose-500/20 rounded-full py-2.5 text-sm hover:bg-rose-500/20 transition-colors disabled:opacity-50"
+            >
+              {loading ? "…" : "Elimina ORA (Test Wipe)"}
+            </button>
+            <button
+              onClick={() => void signOut().then(() => setFlow("signIn"))}
+              className="w-full border border-border text-text text-sm rounded-full py-2.5 hover:bg-surface transition-colors"
+            >
+              Esci
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center px-4">

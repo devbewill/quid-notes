@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import type { NoteDoc, TaskDoc } from "@/lib/types";
@@ -206,8 +206,10 @@ interface KanbanViewProps {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export function KanbanView({ onEdit, onEditTask, search, typeFilter, tagFilter, statusFilter, globalTagColors }: KanbanViewProps) {
-  const topNotes = useQuery(api.notes.listTopLevel);
-  const tasks = useQuery(api.tasks.listAll);
+  const { isAuthenticated } = useConvexAuth();
+  const user = useQuery(api.users.current, isAuthenticated ? {} : "skip");
+  const topNotes = useQuery(api.notes.listTopLevel, isAuthenticated && user ? {} : "skip");
+  const tasks = useQuery(api.tasks.listAll, isAuthenticated && user ? {} : "skip");
   const updateNote = useMutation(api.notes.update);
   const updateTask = useMutation(api.tasks.update);
 
