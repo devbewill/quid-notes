@@ -9,7 +9,7 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
     // expectation while working around the generic ctx types in the stub _generated/server.
     // eslint-disable-next-line @typescript-eslint/require-await
     async createOrUpdateUser(ctx, args) {
-      if (args.existingUserId !== undefined) {
+      if (args.existingUserId != null) {
         // Returning user — refresh last active timestamp
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (ctx.db as any).patch(args.existingUserId, {

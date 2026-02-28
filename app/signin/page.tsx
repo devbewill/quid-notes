@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function SignInPage() {
   const { signIn } = useAuthActions();
+  const router = useRouter();
   const [flow, setFlow] = useState<"signIn" | "signUp">("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,6 +27,7 @@ export default function SignInPage() {
     setError(null);
     try {
       await signIn("password", { email, password, name, flow });
+      router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Errore di autenticazione");
     } finally {
@@ -32,7 +35,7 @@ export default function SignInPage() {
     }
   };
 
-  const handleGoogle = () => signIn("google");
+  const handleGoogle = () => signIn("google").then(() => router.push("/"));
 
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center px-4">
