@@ -73,7 +73,7 @@ export function CreateModal({ onClose, defaultType = "note" }: Props) {
               ) : (
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" /></svg>
               )}
-              {t === "note" ? "Nota" : "Task"}
+              {t === "note" ? "Note" : "Task"}
             </button>
           ))}
         </div>
@@ -82,7 +82,7 @@ export function CreateModal({ onClose, defaultType = "note" }: Props) {
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder={type === "note" ? "Titolo nota…" : "Titolo task…"}
+            placeholder={type === "note" ? "Note title…" : "Task title…"}
             autoFocus
             required
             className="text-sm font-medium bg-transparent border-b border-border focus:border-accent outline-none pb-2 text-text placeholder:text-muted transition-colors"
@@ -90,13 +90,13 @@ export function CreateModal({ onClose, defaultType = "note" }: Props) {
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Descrizione (opzionale)…"
+            placeholder="Description (optional)…"
             rows={3}
             className="text-sm bg-transparent text-text placeholder:text-muted outline-none resize-none"
           />
           <div className="flex gap-4 items-center">
             <div className="flex items-center gap-2">
-              <label className="text-xs text-muted">Inizio</label>
+              <label className="text-xs text-muted">Start</label>
               <input
                 type="date"
                 value={startDate}
@@ -105,7 +105,7 @@ export function CreateModal({ onClose, defaultType = "note" }: Props) {
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-xs text-muted">Scadenza</label>
+              <label className="text-xs text-muted">Due</label>
               <input
                 type="date"
                 value={dueDate}
@@ -121,7 +121,7 @@ export function CreateModal({ onClose, defaultType = "note" }: Props) {
               onClick={onClose}
               className="text-xs px-4 py-1.5 rounded-full text-muted hover:text-text transition-colors"
             >
-              Annulla
+              Cancel
             </button>
             <button
               type="submit"
@@ -133,7 +133,7 @@ export function CreateModal({ onClose, defaultType = "note" }: Props) {
                   : "bg-violet-500 text-white hover:bg-violet-400"
               )}
             >
-              {loading ? "…" : type === "note" ? "Crea nota" : "Crea task"}
+              {loading ? "…" : type === "note" ? "Create note" : "Create task"}
             </button>
           </div>
         </form>

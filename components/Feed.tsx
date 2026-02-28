@@ -127,8 +127,8 @@ function EmptyState({ hasSearch }: { hasSearch: boolean }) {
           )}
         </div>
         <div>
-          <p className="text-sm text-text font-medium">{hasSearch ? "Nessun risultato" : "Nessuna nota ancora"}</p>
-          <p className="text-xs text-muted mt-1">{hasSearch ? "Prova con parole chiave diverse" : "Crea la tua prima nota con il pulsante \"+ Nuovo\""}</p>
+          <p className="text-sm text-text font-medium">{hasSearch ? "No results" : "No notes yet"}</p>
+          <p className="text-xs text-muted mt-1">{hasSearch ? "Try different keywords" : "Create your first note with the \"+ New\" button"}</p>
         </div>
       </div>
     </td></tr>
@@ -395,12 +395,12 @@ export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search, ty
           <thead>
             <tr className="border-b border-border">
               <th className="w-10" />
-              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">Titolo</th>
-              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">Tipo</th>
-              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">Stato</th>
-              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">Inizio</th>
-              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">Scadenza</th>
-              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">Tag</th>
+              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_title")}</th>
+              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_type")}</th>
+              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_status")}</th>
+              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_start")}</th>
+              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_due")}</th>
+              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">Tags</th>
             </tr>
           </thead>
           <tbody>
@@ -426,7 +426,7 @@ export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search, ty
               <SortTh col="status" sort={sort} onSort={handleSort}>{t("feed_col_status")}</SortTh>
               <SortTh col="startDate" sort={sort} onSort={handleSort}>{t("feed_col_start")}</SortTh>
               <SortTh col="dueDate" sort={sort} onSort={handleSort}>{t("feed_col_due")}</SortTh>
-              <SortTh col="tags" sort={sort} onSort={handleSort}>Tag</SortTh>
+              <SortTh col="tags" sort={sort} onSort={handleSort}>Tags</SortTh>
             </tr>
           </thead>
           <tbody>

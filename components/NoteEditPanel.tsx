@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import type { NoteDoc } from "@/lib/types";
@@ -26,6 +26,8 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
   const update = useMutation(api.notes.update);
   const remove = useMutation(api.notes.remove);
   const togglePin = useMutation(api.notes.togglePin);
+  const liveNote = useQuery(api.notes.get, { noteId: note._id });
+  const displayNote = liveNote ?? note;
 
   const [title, setTitle] = useState(note.title);
   const [text, setText] = useState(note.text);
@@ -139,17 +141,17 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
             />
             <h4 className="text-[10px] uppercase tracking-wider font-bold text-muted mb-4 px-1">Details</h4>
             <p className="text-[10px] text-muted mt-0.5 tabular-nums">
-              Modified {new Date(note.updatedAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}
+              Modified {new Date(displayNote.updatedAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}
             </p>
           </div>
           <div className="flex items-center gap-1 shrink-0 mt-0.5">
             <button
               onClick={() => togglePin({ noteId: note._id })}
-              className={cn("p-1.5 rounded-md transition-colors", note.isPinned ? "text-amber-500 bg-amber-500/10 hover:bg-amber-500/20" : "text-muted hover:text-text hover:bg-surface/60")}
-              title={note.isPinned ? "Remove from pinned" : "Pin to top"}
+              className={cn("p-1.5 rounded-md transition-colors", displayNote.isPinned ? "text-amber-500 bg-amber-500/10 hover:bg-amber-500/20" : "text-muted hover:text-text hover:bg-surface/60")}
+              title={displayNote.isPinned ? "Remove from pinned" : "Pin to top"}
             >
-              <svg className={cn("w-4 h-4", note.isPinned && "fill-amber-500")} viewBox="0 0 20 20" stroke="currentColor" fill="none">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={note.isPinned ? 0 : 1.5} d={note.isPinned ? "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" : "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"} />
+              <svg className={cn("w-4 h-4", displayNote.isPinned && "fill-amber-500")} viewBox="0 0 20 20" stroke="currentColor" fill="none">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={displayNote.isPinned ? 0 : 1.5} d={displayNote.isPinned ? "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" : "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"} />
               </svg>
             </button>
             <button

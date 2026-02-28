@@ -43,7 +43,7 @@ type ViewMode = "edit" | "split" | "preview";
 // ─── Markdown preview ─────────────────────────────────────────────────────────
 function MarkdownPreview({ content }: { content: string }) {
   if (!content)
-    return <p className="text-muted text-sm italic p-4">Nessun contenuto da visualizzare.</p>;
+    return <p className="text-muted text-sm italic p-4">No content to display.</p>;
 
   return (
     <div className="p-5 overflow-y-auto h-full text-sm leading-relaxed">
@@ -220,42 +220,42 @@ export function MarkdownEditor({ value, onChange, onBlur }: Props) {
       {/* ── Toolbar ── */}
       <div className="flex items-center gap-0.5 px-3 py-1.5 border-b border-border bg-bg/20 flex-wrap shrink-0">
         {/* Text */}
-        <TB title="Grassetto" onClick={() => insert("**", "**", "testo")}><strong>B</strong></TB>
-        <TB title="Corsivo" onClick={() => insert("*", "*", "testo")}><em>I</em></TB>
-        <TB title="Barrato" onClick={() => insert("~~", "~~", "testo")}><span className="line-through">S</span></TB>
+        <TB title="Bold" onClick={() => insert("**", "**", "text")}><strong>B</strong></TB>
+        <TB title="Italic" onClick={() => insert("*", "*", "text")}><em>I</em></TB>
+        <TB title="Strikethrough" onClick={() => insert("~~", "~~", "text")}><span className="line-through">S</span></TB>
         <Divider />
 
         {/* Headings */}
-        <TB title="Titolo H1" onClick={() => insert("# ", "", "Titolo")}>H1</TB>
-        <TB title="Titolo H2" onClick={() => insert("## ", "", "Titolo")}>H2</TB>
-        <TB title="Titolo H3" onClick={() => insert("### ", "", "Titolo")}>H3</TB>
+        <TB title="Heading H1" onClick={() => insert("# ", "", "Heading")}>H1</TB>
+        <TB title="Heading H2" onClick={() => insert("## ", "", "Heading")}>H2</TB>
+        <TB title="Heading H3" onClick={() => insert("### ", "", "Heading")}>H3</TB>
         <Divider />
 
         {/* Lists */}
-        <TB title="Lista puntata" onClick={() => insert("- ", "", "elemento")}>
+        <TB title="Bulleted list" onClick={() => insert("- ", "", "item")}>
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
         </TB>
-        <TB title="Lista numerata" onClick={() => insert("1. ", "", "elemento")}>
+        <TB title="Numbered list" onClick={() => insert("1. ", "", "item")}>
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.242 5.992h12m-12 6.003H20.24m-12 5.999h12M4.117 7.495v-3.75H2.99m1.125 3.75H2.99m1.125 0H5.24m-1.92 2.577a1.125 1.125 0 1 1 1.591 1.59l-1.83 1.83h2.16M2.99 15.745h1.125a1.125 1.125 0 0 1 0 2.25H3.74m0-.002h.375a1.125 1.125 0 0 1 0 2.25H2.99" /></svg>
         </TB>
-        <TB title="Citazione" onClick={() => insert("> ", "", "citazione")}>
+        <TB title="Quote" onClick={() => insert("> ", "", "quote")}>
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" /></svg>
         </TB>
         <Divider />
 
         {/* Code */}
-        <TB title="Codice inline" onClick={() => insert("`", "`", "codice")}><code className="text-xs">` `</code></TB>
-        <TB title="Blocco codice" onClick={() => insert("```\n", "\n```", "codice")}>
+        <TB title="Inline code" onClick={() => insert("`", "`", "code")}><code className="text-xs">` `</code></TB>
+        <TB title="Code block" onClick={() => insert("```\n", "\n```", "code")}>
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" /></svg>
         </TB>
-        <TB title="Divisore orizzontale" onClick={() => insert("\n\n---\n\n")}>―</TB>
+        <TB title="Horizontal divider" onClick={() => insert("\n\n---\n\n")}>―</TB>
         <Divider />
 
         {/* Link & Image */}
-        <TB title="Inserisci link" onClick={() => setShowLinkDialog((v) => !v)} active={showLinkDialog}>
+        <TB title="Insert link" onClick={() => setShowLinkDialog((v) => !v)} active={showLinkDialog}>
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" /></svg>
         </TB>
-        <TB title="Carica immagine" onClick={() => fileInputRef.current?.click()}>
+        <TB title="Upload image" onClick={() => fileInputRef.current?.click()}>
           {uploading ? (
             <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -280,12 +280,12 @@ export function MarkdownEditor({ value, onChange, onBlur }: Props) {
                 mode === m ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text"
               )}
             >
-              {m === "edit" ? "Scrivi" : m === "split" ? "Dividi" : "Anteprima"}
+              {m === "edit" ? "Write" : m === "split" ? "Split" : "Preview"}
             </button>
           ))}
         </div>
         <Divider />
-        <TB title={isFullscreen ? "Esci da schermo intero" : "Schermo intero"} onClick={() => setIsFullscreen(!isFullscreen)} active={isFullscreen}>
+        <TB title={isFullscreen ? "Exit full screen" : "Full screen"} onClick={() => setIsFullscreen(!isFullscreen)} active={isFullscreen}>
           {isFullscreen ? (
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25" /></svg>
           ) : (
@@ -301,7 +301,7 @@ export function MarkdownEditor({ value, onChange, onBlur }: Props) {
             autoFocus
             value={linkText}
             onChange={(e) => setLinkText(e.target.value)}
-            placeholder="Testo del link"
+            placeholder="Link text"
             className="bg-surface border border-border rounded px-2 py-1 text-xs text-text outline-none focus:border-accent w-32"
           />
           <input
@@ -316,14 +316,14 @@ export function MarkdownEditor({ value, onChange, onBlur }: Props) {
             onClick={handleLinkInsert}
             className="text-xs px-3 py-1 rounded bg-violet-500 text-white font-medium hover:bg-violet-400 transition-colors"
           >
-            Inserisci
+            Insert
           </button>
           <button
             type="button"
             onClick={() => setShowLinkDialog(false)}
             className="text-xs text-muted hover:text-text transition-colors"
           >
-            Annulla
+            Cancel
           </button>
         </div>
       )}
@@ -337,7 +337,7 @@ export function MarkdownEditor({ value, onChange, onBlur }: Props) {
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onBlur={onBlur}
-            placeholder="Scrivi il contenuto in markdown..."
+            placeholder="Write markdown content here..."
             spellCheck={false}
             className={cn(
               "resize-none outline-none bg-transparent text-sm text-text/90 placeholder:text-muted p-5 font-mono leading-relaxed",

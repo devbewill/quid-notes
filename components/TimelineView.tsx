@@ -360,8 +360,8 @@ export function TimelineView({ onEdit, onEditTask, search, typeFilter, tagFilter
           </svg>
         </div>
         <div>
-          <p className="text-sm text-text font-medium">{search ? "Nessun risultato" : "Nessuna voce ancora"}</p>
-          <p className="text-xs text-muted mt-1">{search ? "Prova con parole chiave diverse" : "Crea la tua prima nota con il pulsante \"+ Nuovo\""}</p>
+          <p className="text-sm text-text font-medium">{search ? "No results" : "No entries yet"}</p>
+          <p className="text-xs text-muted mt-1">{search ? "Try different keywords" : "Create your first note with the \"+ New\" button"}</p>
         </div>
       </div>
     );

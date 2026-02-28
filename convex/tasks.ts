@@ -214,3 +214,14 @@ export const listTrashed = query({
       .collect();
   },
 });
+
+/** Get a single task by ID. */
+export const get = query({
+  args: { taskId: v.id("tasks") },
+  handler: async (ctx, args) => {
+    const user = await requireAuth(ctx);
+    const task = await ctx.db.get(args.taskId);
+    if (!task || task.ownerId !== user._id) return null;
+    return task;
+  },
+});

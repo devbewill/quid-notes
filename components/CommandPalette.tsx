@@ -71,12 +71,12 @@ export function CommandPalette({
 
     // Quick actions (always visible, filtered by name)
     const actions: PaletteItem[] = [
-      { id: "a:new-note", kind: "action", title: "Nuova nota", subtitle: "Crea una nota", icon: ActionIcon, onSelect: () => { onClose(); onCreateNote(); } },
-      { id: "a:new-task", kind: "action", title: "Nuovo task", subtitle: "Crea un task", icon: ActionIcon, onSelect: () => { onClose(); onCreateTask(); } },
-      { id: "a:view-table", kind: "action", title: "Vista tabella", subtitle: "Cambia visualizzazione", icon: ActionIcon, onSelect: () => { onClose(); onSwitchView("table"); } },
-      { id: "a:view-timeline", kind: "action", title: "Vista timeline", subtitle: "Cambia visualizzazione", icon: ActionIcon, onSelect: () => { onClose(); onSwitchView("timeline"); } },
-      { id: "a:view-kanban", kind: "action", title: "Vista kanban", subtitle: "Cambia visualizzazione", icon: ActionIcon, onSelect: () => { onClose(); onSwitchView("kanban"); } },
-      { id: "a:tags", kind: "action", title: "Gestisci tag", subtitle: "Apri pannello tag", icon: ActionIcon, onSelect: () => { onClose(); onOpenTags(); } },
+      { id: "a:new-note", kind: "action", title: "New note", subtitle: "Create a note", icon: ActionIcon, onSelect: () => { onClose(); onCreateNote(); } },
+      { id: "a:new-task", kind: "action", title: "New task", subtitle: "Create a task", icon: ActionIcon, onSelect: () => { onClose(); onCreateTask(); } },
+      { id: "a:view-table", kind: "action", title: "Table view", subtitle: "Change view", icon: ActionIcon, onSelect: () => { onClose(); onSwitchView("table"); } },
+      { id: "a:view-timeline", kind: "action", title: "Timeline view", subtitle: "Change view", icon: ActionIcon, onSelect: () => { onClose(); onSwitchView("timeline"); } },
+      { id: "a:view-kanban", kind: "action", title: "Kanban view", subtitle: "Change view", icon: ActionIcon, onSelect: () => { onClose(); onSwitchView("kanban"); } },
+      { id: "a:tags", kind: "action", title: "Manage tags", subtitle: "Open tags panel", icon: ActionIcon, onSelect: () => { onClose(); onOpenTags(); } },
     ];
     const filteredActions = q ? actions.filter((a) => a.title.toLowerCase().includes(q)) : actions;
     result.push(...filteredActions);
@@ -89,7 +89,7 @@ export function CommandPalette({
         .map((n) => ({
           id: `n:${n._id}`,
           kind: "note" as const,
-          title: n.title || "Senza titolo",
+          title: n.title || "Untitled",
           subtitle: n.tags?.join(", "),
           icon: NoteIcon,
           onSelect: () => { onClose(); onEditNote(n); },
@@ -105,8 +105,8 @@ export function CommandPalette({
         .map((t) => ({
           id: `t:${t._id}`,
           kind: "task" as const,
-          title: t.title || "Senza titolo",
-          subtitle: t.status === "active" ? "In corso" : t.status === "completed" ? "Completato" : "To Do",
+          title: t.title || "Untitled",
+          subtitle: t.status === "active" ? "In Progress" : t.status === "completed" ? "Completed" : "To Do",
           icon: TaskIcon,
           onSelect: () => { onClose(); onEditTask(t); },
         }));
@@ -151,7 +151,7 @@ export function CommandPalette({
   const getCategory = (item: PaletteItem, index: number, list: PaletteItem[]) => {
     const prev = list[index - 1];
     if (!prev || prev.kind !== item.kind) {
-      return item.kind === "action" ? "Azioni rapide" : item.kind === "note" ? "Note" : "Task";
+      return item.kind === "action" ? "Quick Actions" : item.kind === "note" ? "Notes" : "Tasks";
     }
     return null;
   };
@@ -187,7 +187,7 @@ export function CommandPalette({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Cerca note, task o azioni…"
+              placeholder="Search notes, tasks or actions…"
               className="flex-1 bg-transparent text-sm text-text placeholder:text-muted outline-none"
             />
             <kbd className="text-[10px] text-muted border border-border rounded px-1.5 py-0.5 font-mono leading-none">ESC</kbd>
@@ -197,7 +197,7 @@ export function CommandPalette({
           <div ref={listRef} className="max-h-[50vh] overflow-y-auto py-1">
             {items.length === 0 ? (
               <div className="py-10 text-center">
-                <p className="text-sm text-muted">Nessun risultato per &ldquo;{query}&rdquo;</p>
+                <p className="text-sm text-muted">No results for &ldquo;{query}&rdquo;</p>
               </div>
             ) : (
               items.map((item, i) => {
@@ -233,9 +233,9 @@ export function CommandPalette({
 
           {/* Footer */}
           <div className="flex items-center gap-4 px-4 py-2 border-t border-border text-[10px] text-muted">
-            <span className="flex items-center gap-1"><kbd className="border border-border rounded px-1 py-0.5 font-mono">↑↓</kbd> naviga</span>
-            <span className="flex items-center gap-1"><kbd className="border border-border rounded px-1 py-0.5 font-mono">↵</kbd> seleziona</span>
-            <span className="flex items-center gap-1"><kbd className="border border-border rounded px-1 py-0.5 font-mono">esc</kbd> chiudi</span>
+            <span className="flex items-center gap-1"><kbd className="border border-border rounded px-1 py-0.5 font-mono">↑↓</kbd> navigate</span>
+            <span className="flex items-center gap-1"><kbd className="border border-border rounded px-1 py-0.5 font-mono">↵</kbd> select</span>
+            <span className="flex items-center gap-1"><kbd className="border border-border rounded px-1 py-0.5 font-mono">esc</kbd> close</span>
           </div>
         </div>
       </motion.div>

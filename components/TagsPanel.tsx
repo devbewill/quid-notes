@@ -60,8 +60,8 @@ export function TagsPanel({ globalTagColors, onClose }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
             </svg>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-text">Gestisci Tag</p>
-              <p className="text-[10px] text-muted mt-0.5">{tags.length} tag {tags.length === 1 ? "configurato" : "configurati"}</p>
+              <p className="text-sm font-semibold text-text">Manage Tags</p>
+              <p className="text-[10px] text-muted mt-0.5">{tags.length} tag{tags.length === 1 ? "" : "s"} configured</p>
             </div>
             <button
               onClick={onClose}
@@ -81,8 +81,8 @@ export function TagsPanel({ globalTagColors, onClose }: Props) {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm text-text font-medium">Nessun tag con colore</p>
-                  <p className="text-xs text-muted mt-1">I colori dei tag vengono assegnati quando crei una nota e aggiungi un tag</p>
+                  <p className="text-sm text-text font-medium">No colored tags</p>
+                  <p className="text-xs text-muted mt-1">Tag colors are assigned when you create a note and add a tag.</p>
                 </div>
               </div>
             ) : (
@@ -99,7 +99,7 @@ export function TagsPanel({ globalTagColors, onClose }: Props) {
                           onChange={(e) => handleColorChange(tag, e.target.value)}
                           onBlur={(e) => handleColorCommit(tag, e.target.value)}
                           className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                          title="Cambia colore"
+                          title="Change color"
                         />
                         <div
                           className="w-6 h-6 rounded-full border-2 border-white/20 shadow cursor-pointer transition-transform hover:scale-110"
@@ -129,7 +129,7 @@ export function TagsPanel({ globalTagColors, onClose }: Props) {
           {/* Footer hint */}
           {tags.length > 0 && (
             <div className="px-5 py-3 border-t border-border">
-              <p className="text-[10px] text-muted">Clicca sul cerchio colorato per cambiare il colore. La modifica viene applicata a tutte le note che usano quel tag.</p>
+              <p className="text-[10px] text-muted">Click the colored circle to change the color. The change is applied to all notes using that tag.</p>
             </div>
           )}
         </div>

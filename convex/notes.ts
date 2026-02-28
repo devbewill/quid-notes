@@ -162,3 +162,14 @@ export const listTrashed = query({
       .collect();
   },
 });
+
+/** Get a single note by ID. */
+export const get = query({
+  args: { noteId: v.id("notes") },
+  handler: async (ctx, args) => {
+    const user = await requireAuth(ctx);
+    const note = await ctx.db.get(args.noteId);
+    if (!note || note.ownerId !== user._id) return null;
+    return note;
+  },
+});
