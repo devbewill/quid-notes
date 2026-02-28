@@ -1,9 +1,10 @@
 ---
 id: TASK-20
 title: Edit Note Panel — wider overlay (50%+ width)
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-02-28 11:27'
+updated_date: '2026-02-28 11:30'
 labels: []
 dependencies: []
 ---

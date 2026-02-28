@@ -35,9 +35,9 @@ Return ONLY a JSON array of 3 strings. No explanation.
 Notes:
 ${notesContent}`;
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey, httpOptions: { apiVersion: "v1" } });
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-lite",
+      model: "gemini-1.5-flash",
       contents: prompt,
     });
 

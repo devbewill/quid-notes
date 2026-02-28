@@ -1,9 +1,10 @@
 ---
 id: TASK-21
 title: Create Note or Task — choose type at creation
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-02-28 11:27'
+updated_date: '2026-02-28 11:30'
 labels: []
 dependencies: []
 ---
