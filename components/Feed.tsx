@@ -444,11 +444,10 @@ export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search, ty
                   onSelectTask={onSelectTask}
                 />
               ))}
+              {!hasItems && <EmptyState hasSearch={!!search} />}
             </AnimatePresence>
           </tbody>
         </table>
-
-              {!hasItems && <EmptyState hasSearch={!!search} />}
       </div>
     </div>
   );

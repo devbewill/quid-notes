@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -26,10 +26,10 @@ import { AiAssistant } from "@/components/AiAssistant";
 
 export default function Home() {
   const router = useRouter();
-  useAuthActions();
-  const user = useQuery(api.users.current);
-  const sidebarNotes = useQuery(api.notes.listTopLevel, user ? {} : "skip");
-  const sidebarTasks = useQuery(api.tasks.listAll, user ? {} : "skip");
+  const { isAuthenticated, isLoading } = useConvexAuth();
+  const user = useQuery(api.users.current, isAuthenticated ? {} : "skip");
+  const sidebarNotes = useQuery(api.notes.listTopLevel, isAuthenticated && user ? {} : "skip");
+  const sidebarTasks = useQuery(api.tasks.listAll, isAuthenticated && user ? {} : "skip");
 
 
   const [selectedNoteIds, setSelectedNoteIds] = useState<Set<Id<"notes">>>(new Set());
@@ -66,10 +66,10 @@ export default function Home() {
   }, [sidebarNotes]);
 
   useEffect(() => {
-    if (user === null) {
+    if (!isLoading && !isAuthenticated) {
       router.push("/signin");
     }
-  }, [user, router]);
+  }, [isLoading, isAuthenticated, router]);
 
 
   const handleSelect = (id: Id<"notes">) => {
@@ -138,7 +138,7 @@ export default function Home() {
     setCreateDefaultType("task");
     setShowCreate(true);
   };
-  if (user === null) {
+  if (isLoading || !isAuthenticated || user === undefined) {
     return null;
   }
 
