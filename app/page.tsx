@@ -28,8 +28,8 @@ export default function Home() {
   const router = useRouter();
   useAuthActions();
   const user = useQuery(api.users.current);
-  const sidebarNotes = useQuery(api.notes.listTopLevel);
-  const sidebarTasks = useQuery(api.tasks.listAll);
+  const sidebarNotes = useQuery(api.notes.listTopLevel, user ? {} : "skip");
+  const sidebarTasks = useQuery(api.tasks.listAll, user ? {} : "skip");
 
 
   const [selectedNoteIds, setSelectedNoteIds] = useState<Set<Id<"notes">>>(new Set());
@@ -65,10 +65,12 @@ export default function Home() {
     return map;
   }, [sidebarNotes]);
 
-  if (user === null) {
-    router.push("/signin");
-    return null;
-  }
+  useEffect(() => {
+    if (user === null) {
+      router.push("/signin");
+    }
+  }, [user, router]);
+
 
   const handleSelect = (id: Id<"notes">) => {
     setSelectedNoteIds((prev) => {
@@ -136,6 +138,9 @@ export default function Home() {
     setCreateDefaultType("task");
     setShowCreate(true);
   };
+  if (user === null) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -308,8 +313,8 @@ export default function Home() {
                   className={cn(
                     "text-xs px-1.5 py-0.5 rounded font-medium transition-all",
                     !c && (tagFilter === tag
-                      ? "bg-amber-500/40 text-amber-200 ring-1 ring-amber-400/60"
-                      : "bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/25 hover:bg-amber-500/30")
+                      ? "bg-violet-500/40 text-violet-200 ring-1 ring-violet-400/60"
+                      : "bg-violet-500/20 text-violet-300 ring-1 ring-violet-400/25 hover:bg-violet-500/30")
                   )}
                   style={c ? {
                     background: tagFilter === tag ? `${c}50` : `${c}28`,

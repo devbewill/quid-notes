@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import type { TaskDoc } from "@/lib/types";
 import { cn } from "@/lib/cn";
+import { MarkdownEditor } from "@/components/MarkdownEditor";
 
 interface Props {
   task: TaskDoc;
@@ -180,18 +181,20 @@ export function TaskEditPanel({ task, onClose }: Props) {
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" /></svg>
-                  Note collegate ({linkedNotes.length})
+                  Linked Notes ({linkedNotes.length})
                 </label>
                 <div className="flex flex-col gap-1.5">
                   {linkedNotes.map((note) => (
                     <div
                       key={note._id}
-                      className="text-xs px-2 py-1.5 rounded-lg bg-bg border border-border text-text"
+                      className="flex items-center gap-2 text-xs px-2 py-1.5 rounded-md bg-bg border border-border text-text"
                     >
-                      <span className="text-xs text-text font-medium min-w-[70px]">Start</span>
-                      <p className="font-medium truncate">{note.title}</p>
+                      <svg className="w-3.5 h-3.5 text-muted/60 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zM15 12h-3m3 3h-3m3 3h-3" />
+                      </svg>
+                      <span className="font-medium truncate flex-1">{note.title}</span>
                       <span
-                        className={`mt-0.5 inline-block text-[10px] px-1.5 py-0.5 rounded-full ${
+                        className={`inline-block text-[9px] px-1.5 py-0.5 rounded-full ${
                           note.status === "completed"
                             ? "bg-emerald-500/20 text-emerald-300"
                             : note.status === "active"
@@ -219,13 +222,11 @@ export function TaskEditPanel({ task, onClose }: Props) {
           </div>
 
           {/* Right: description */}
-          <div className="flex-1 p-6 overflow-y-auto">
-            <textarea
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <MarkdownEditor
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={setText}
               onBlur={() => commit()}
-              placeholder="Write the task description here…"
-              className="w-full h-full min-h-full bg-transparent text-sm text-text outline-none resize-none placeholder:text-muted leading-relaxed"
             />
           </div>
         </div>

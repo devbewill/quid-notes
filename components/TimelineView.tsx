@@ -96,7 +96,7 @@ function TagChip({ name, globalTagColors }: { name: string; globalTagColors: Rec
       {name}
     </span>
   ) : (
-    <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/25">
+    <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-300 ring-1 ring-violet-400/25">
       {name}
     </span>
   );

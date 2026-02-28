@@ -101,7 +101,7 @@ function KanbanCard({
               {tag}
             </span>
           ) : (
-            <span key={tag} className="text-[9px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/25">
+            <span key={tag} className="text-[9px] px-1 py-0.5 rounded bg-violet-500/20 text-violet-300 ring-1 ring-violet-400/25">
               {tag}
             </span>
           );

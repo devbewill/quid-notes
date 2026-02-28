@@ -41,22 +41,6 @@ function StatusBadge({ status }: { status: "idle" | "active" | "completed" }) {
   );
 }
 
-// ─── Type badge ───────────────────────────────────────────────────────────────
-function TypeBadge({ type }: { type: "NOTE" | "TASK" }) {
-  return (
-    <span
-      className={cn(
-        "text-xs px-2.5 py-0.5 rounded-full font-medium",
-        type === "NOTE"
-          ? "bg-slate-400/20 text-slate-300 ring-1 ring-slate-400/25"
-          : "bg-violet-500/25 text-violet-300 ring-1 ring-violet-400/30"
-      )}
-    >
-      {type}
-    </span>
-  );
-}
-
 // ─── Date cell ────────────────────────────────────────────────────────────────
 function DateCell({ ts, overdue }: { ts?: number; overdue?: boolean }) {
   if (!ts) return <span className="text-muted text-xs">—</span>;
@@ -87,7 +71,7 @@ function TagsCell({ tags, tagColors }: { tags?: string[]; tagColors?: TagColorEn
             {t}
           </span>
         ) : (
-          <span key={t} className="text-xs px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/25">
+          <span key={t} className="text-xs px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-300 ring-1 ring-violet-400/25">
             {t}
           </span>
         );
@@ -104,8 +88,8 @@ function SkeletonRow({ index }: { index: number }) {
   return (
     <tr className="border-b border-border">
       <td className="w-10 pl-3 py-3.5"><div className="w-4 h-4 rounded bg-border/40 animate-pulse" /></td>
+      <td className="w-8 py-3.5"><div className="w-4 h-4 rounded bg-border/40 animate-pulse" /></td>
       <td className="pr-4 py-3.5"><div className="h-2.5 bg-border/40 rounded animate-pulse" style={{ width: w }} /></td>
-      <td className="pr-4"><div className="h-5 bg-border/40 rounded-full animate-pulse w-12" /></td>
       <td className="pr-4"><div className="h-5 bg-border/40 rounded-full animate-pulse w-20" /></td>
       <td className="pr-4"><div className="h-2.5 bg-border/40 rounded animate-pulse w-14" /></td>
       <td className="pr-4"><div className="h-2.5 bg-border/40 rounded animate-pulse w-14" /></td>
@@ -223,11 +207,17 @@ function NoteRow({
             checked={selected}
             onChange={(e) => { e.stopPropagation(); onSelect(note._id); }}
             className={cn(
-              "rounded border-border bg-transparent accent-accent transition-opacity",
+              "appearance-none w-[14px] h-[14px] rounded border border-muted/40 bg-surface checked:bg-accent checked:border-accent cursor-pointer transition-all relative outline-none",
+              "after:content-[''] after:hidden checked:after:block after:absolute after:left-[4px] after:top-[1px] after:w-[4px] after:h-[8px] after:border-solid after:border-bg after:border-b-[1.5px] after:border-r-[1.5px] after:rotate-45",
               hovered || selected ? "opacity-100" : "opacity-0"
             )}
           />
         )}
+      </td>
+      <td className="w-8 pr-2">
+        <svg className="w-4 h-4 text-muted/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zM15 12h-3m3 3h-3m3 3h-3" />
+        </svg>
       </td>
       <td
         className={cn("py-3 pr-4 text-sm cursor-pointer hover:text-accent transition-colors flex items-center gap-1.5", isChild && "pl-8")}
@@ -240,7 +230,6 @@ function NoteRow({
         )}
         <span className="truncate">{note.title}</span>
       </td>
-      <td className="pr-4"><TypeBadge type="NOTE" /></td>
       <td className="pr-4"><StatusBadge status={note.status} /></td>
       <td className="pr-4"><DateCell ts={note.startDate} /></td>
       <td className="pr-4"><DateCell ts={note.dueDate} overdue={!!note.dueDate && note.status !== "completed" && note.dueDate < Date.now()} /></td>
@@ -284,12 +273,18 @@ function TaskRow({ task, onEdit, onEditTask, selected, onSelectTask }: {
                 checked={selected}
                 onChange={(e) => { e.stopPropagation(); onSelectTask(task._id); }}
                 className={cn(
-                  "rounded border-border bg-transparent accent-violet-500 transition-opacity",
+                  "appearance-none w-[14px] h-[14px] rounded border border-muted/40 bg-surface checked:bg-violet-500 checked:border-violet-500 cursor-pointer transition-all relative outline-none",
+                  "after:content-[''] after:hidden checked:after:block after:absolute after:left-[4px] after:top-[1px] after:w-[4px] after:h-[8px] after:border-solid after:border-bg after:border-b-[1.5px] after:border-r-[1.5px] after:rotate-45",
                   hovered || selected ? "opacity-100" : "opacity-0"
                 )}
               />
             )}
           </div>
+        </td>
+        <td className="w-8 pr-2">
+          <svg className="w-4 h-4 text-violet-500/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
         </td>
         <td
           className="py-3 pr-4 text-sm font-medium cursor-pointer hover:text-accent transition-colors flex items-center gap-1.5"
@@ -302,7 +297,6 @@ function TaskRow({ task, onEdit, onEditTask, selected, onSelectTask }: {
           )}
           <span className="truncate">{task.title}</span>
         </td>
-        <td className="pr-4"><TypeBadge type="TASK" /></td>
         <td className="pr-4"><StatusBadge status={task.status} /></td>
         <td className="pr-4"><DateCell ts={task.startDate} /></td>
         <td className="pr-4"><DateCell ts={task.dueDate} overdue={!!task.dueDate && task.status !== "completed" && task.dueDate < Date.now()} /></td>
@@ -395,8 +389,8 @@ export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search, ty
           <thead>
             <tr className="border-b border-border">
               <th className="w-10" />
+              <th className="w-8" />
               <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_title")}</th>
-              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_type")}</th>
               <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_status")}</th>
               <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_start")}</th>
               <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_due")}</th>
@@ -421,8 +415,8 @@ export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search, ty
           <thead>
             <tr className="border-b border-border">
               <th className="w-10" />
+              <th className="w-8" />
               <SortTh col="title" sort={sort} onSort={handleSort}>{t("feed_col_title")}</SortTh>
-              <SortTh col="type" sort={sort} onSort={handleSort}>{t("feed_col_type")}</SortTh>
               <SortTh col="status" sort={sort} onSort={handleSort}>{t("feed_col_status")}</SortTh>
               <SortTh col="startDate" sort={sort} onSort={handleSort}>{t("feed_col_start")}</SortTh>
               <SortTh col="dueDate" sort={sort} onSort={handleSort}>{t("feed_col_due")}</SortTh>
