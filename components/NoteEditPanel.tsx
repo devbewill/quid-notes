@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
 import { api } from "@/convex/_generated/api";
@@ -68,6 +68,16 @@ export function NoteEditPanel({ note, onClose }: Props) {
   };
 
   const handleClose = () => { commit(); onClose(); };
+
+  // Keep a stable ref so the ESC listener always calls the latest handleClose
+  const handleCloseRef = useRef(handleClose);
+  useEffect(() => { handleCloseRef.current = handleClose; });
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") handleCloseRef.current(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   const handleDelete = async () => {
     await remove({ noteId: note._id });
