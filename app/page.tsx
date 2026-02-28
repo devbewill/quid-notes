@@ -7,12 +7,14 @@ import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import type { NoteDoc } from "@/lib/types";
 import { Feed } from "@/components/Feed";
 import { QuickAdd } from "@/components/QuickAdd";
 import { ActivateBar } from "@/components/ActivateBar";
 import { ActivateModal } from "@/components/ActivateModal";
 import { AccountMenu } from "@/components/AccountMenu";
 import { ConsentBanner } from "@/components/ConsentBanner";
+import { NoteEditPanel } from "@/components/NoteEditPanel";
 
 export default function Home() {
   const router = useRouter();
@@ -23,6 +25,7 @@ export default function Home() {
     new Set()
   );
   const [showActivateModal, setShowActivateModal] = useState(false);
+  const [editNote, setEditNote] = useState<NoteDoc | null>(null);
 
   // Redirect to sign-in if not authenticated
   if (user === null) {
@@ -79,15 +82,26 @@ export default function Home() {
       </aside>
 
       {/* ── Main ────────────────────────────────────────────────────────── */}
-      <main className="flex-1 bg-bg overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-6 py-8">
+      <main className="flex-1 bg-bg overflow-y-auto min-w-0">
+        <div className="px-4 py-4">
           <QuickAdd />
           <Feed
             selectedNoteIds={selectedNoteIds}
             onSelect={handleSelect}
+            onEdit={setEditNote}
           />
         </div>
       </main>
+
+      {/* ── Note edit panel ───────────────────────────────────────────── */}
+      <AnimatePresence>
+        {editNote && (
+          <NoteEditPanel
+            note={editNote}
+            onClose={() => setEditNote(null)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── ACTIVATE bar ─────────────────────────────────────────────────── */}
       <AnimatePresence>

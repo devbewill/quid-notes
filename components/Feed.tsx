@@ -12,17 +12,23 @@ import type { NoteDoc, TaskDoc } from "@/lib/types";
 interface FeedProps {
   selectedNoteIds: Set<Id<"notes">>;
   onSelect: (id: Id<"notes">) => void;
+  onEdit: (note: NoteDoc) => void;
 }
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: "idle" | "active" | "completed" }) {
   const map = {
-    idle: "text-muted",
-    active: "text-accent font-medium",
-    completed: "text-muted line-through",
+    idle: "bg-zinc-500/20 text-zinc-400",
+    active: "bg-blue-500/20 text-blue-400",
+    completed: "bg-emerald-500/20 text-emerald-400",
   } as const;
   return (
-    <span className={cn("text-xs uppercase tracking-widest", map[status])}>
+    <span
+      className={cn(
+        "text-xs px-2 py-0.5 rounded-full font-medium uppercase tracking-wider",
+        map[status]
+      )}
+    >
       {status}
     </span>
   );
@@ -33,10 +39,10 @@ function TypeBadge({ type }: { type: "NOTE" | "TASK" }) {
   return (
     <span
       className={cn(
-        "text-xs px-2 py-0.5 rounded-full border",
+        "text-xs px-2 py-0.5 rounded-full font-medium",
         type === "NOTE"
-          ? "border-border text-muted"
-          : "border-accent text-accent"
+          ? "bg-slate-500/20 text-slate-400"
+          : "bg-violet-500/20 text-violet-400"
       )}
     >
       {type}
@@ -60,12 +66,10 @@ function DateCell({ ts }: { ts?: number }) {
 // ─── Child notes (Level 2) ────────────────────────────────────────────────────
 function ChildNoteRows({
   taskId,
-  selectedNoteIds,
-  onSelect,
+  onEdit,
 }: {
   taskId: Id<"tasks">;
-  selectedNoteIds: Set<Id<"notes">>;
-  onSelect: (id: Id<"notes">) => void;
+  onEdit: (note: NoteDoc) => void;
 }) {
   const notes = useQuery(api.notes.listByTask, { taskId });
 
@@ -78,8 +82,9 @@ function ChildNoteRows({
           key={note._id}
           note={note}
           isChild
-          selected={selectedNoteIds.has(note._id)}
-          onSelect={onSelect}
+          selected={false}
+          onSelect={() => {}}
+          onEdit={onEdit}
         />
       ))}
     </>
@@ -92,18 +97,21 @@ function NoteRow({
   isChild,
   selected,
   onSelect,
+  onEdit,
 }: {
   note: NoteDoc;
   isChild?: boolean;
   selected: boolean;
   onSelect: (id: Id<"notes">) => void;
+  onEdit: (note: NoteDoc) => void;
 }) {
   const [hovered, setHovered] = useState(false);
 
   const handleClick = (e: React.MouseEvent) => {
-    if (isChild) return; // child notes cannot be selected for activation
     if (e.metaKey || e.ctrlKey) {
-      onSelect(note._id);
+      if (!isChild) onSelect(note._id);
+    } else {
+      onEdit(note);
     }
   };
 
@@ -175,7 +183,13 @@ function NoteRow({
 }
 
 // ─── Task row (Level 1) ───────────────────────────────────────────────────────
-function TaskRow({ task }: { task: TaskDoc }) {
+function TaskRow({
+  task,
+  onEdit,
+}: {
+  task: TaskDoc;
+  onEdit: (note: NoteDoc) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -228,11 +242,7 @@ function TaskRow({ task }: { task: TaskDoc }) {
       {/* Level 2 child notes */}
       <AnimatePresence>
         {expanded && (
-          <ChildNoteRows
-            taskId={task._id}
-            selectedNoteIds={new Set()} // child notes cannot be selected
-            onSelect={() => {}} // silently ignore
-          />
+          <ChildNoteRows taskId={task._id} onEdit={onEdit} />
         )}
       </AnimatePresence>
     </>
@@ -240,7 +250,7 @@ function TaskRow({ task }: { task: TaskDoc }) {
 }
 
 // ─── Feed ─────────────────────────────────────────────────────────────────────
-export function Feed({ selectedNoteIds, onSelect }: FeedProps) {
+export function Feed({ selectedNoteIds, onSelect, onEdit }: FeedProps) {
   const { t } = useLocale();
   const topNotes = useQuery(api.notes.listTopLevel);
   const tasks = useQuery(api.tasks.listAll);
@@ -285,12 +295,13 @@ export function Feed({ selectedNoteIds, onSelect }: FeedProps) {
                 note={note}
                 selected={selectedNoteIds.has(note._id as Id<"notes">)}
                 onSelect={onSelect}
+                onEdit={onEdit}
               />
             ))}
 
             {/* Tasks (Level 1) with expandable Level 2 children */}
             {(tasks as TaskDoc[]).map((task) => (
-              <TaskRow key={task._id} task={task} />
+              <TaskRow key={task._id} task={task} onEdit={onEdit} />
             ))}
           </AnimatePresence>
         </tbody>
