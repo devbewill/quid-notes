@@ -42,6 +42,7 @@ export default defineSchema({
     startDate: v.optional(v.number()), // Unix ms
     dueDate: v.optional(v.number()), // Unix ms
     tags: v.optional(v.array(v.string())),
+    tagColors: v.optional(v.array(v.object({ name: v.string(), color: v.string() }))),
     // undefined = top-level note; set = child note linked to a task
     parentTaskId: v.optional(v.id("tasks")),
     createdAt: v.number(),

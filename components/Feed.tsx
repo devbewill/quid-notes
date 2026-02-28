@@ -15,6 +15,10 @@ interface FeedProps {
   onEdit: (note: NoteDoc) => void;
   onEditTask: (task: TaskDoc) => void;
   search: string;
+  typeFilter: "all" | "note" | "task";
+  tagFilter: string | null;
+  selectedTaskIds: Set<Id<"tasks">>;
+  onSelectTask: (id: Id<"tasks">) => void;
 }
 
 type SortCol = "title" | "type" | "status" | "startDate" | "dueDate" | "tags";
@@ -63,16 +67,68 @@ function DateCell({ ts }: { ts?: number }) {
 }
 
 // ─── Tags cell ────────────────────────────────────────────────────────────────
-function TagsCell({ tags }: { tags?: string[] }) {
+type TagColorEntry = { name: string; color: string };
+function TagsCell({ tags, tagColors }: { tags?: string[]; tagColors?: TagColorEntry[] }) {
   if (!tags || tags.length === 0) return <span className="text-muted text-xs">—</span>;
+  const colorMap = Object.fromEntries((tagColors ?? []).map((e) => [e.name, e.color]));
   return (
     <div className="flex gap-1 flex-wrap">
-      {tags.map((t) => (
-        <span key={t} className="text-xs px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/25">
-          {t}
-        </span>
-      ))}
+      {tags.map((t) => {
+        const c = colorMap[t];
+        return c ? (
+          <span
+            key={t}
+            className="text-xs px-1.5 py-0.5 rounded font-medium"
+            style={{ background: `${c}28`, color: c, boxShadow: `0 0 0 1px ${c}44` }}
+          >
+            {t}
+          </span>
+        ) : (
+          <span key={t} className="text-xs px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/25">
+            {t}
+          </span>
+        );
+      })}
     </div>
+  );
+}
+
+
+// ─── Skeleton row ───────────────────────────────────────────────────────────
+const SKELETON_WIDTHS = [160, 120, 180, 140, 200, 130, 170];
+function SkeletonRow({ index }: { index: number }) {
+  const w = SKELETON_WIDTHS[index % SKELETON_WIDTHS.length];
+  return (
+    <tr className="border-b border-border">
+      <td className="w-10 pl-3 py-3.5"><div className="w-4 h-4 rounded bg-border/40 animate-pulse" /></td>
+      <td className="pr-4 py-3.5"><div className="h-2.5 bg-border/40 rounded animate-pulse" style={{ width: w }} /></td>
+      <td className="pr-4"><div className="h-5 bg-border/40 rounded-full animate-pulse w-12" /></td>
+      <td className="pr-4"><div className="h-5 bg-border/40 rounded-full animate-pulse w-20" /></td>
+      <td className="pr-4"><div className="h-2.5 bg-border/40 rounded animate-pulse w-14" /></td>
+      <td className="pr-4"><div className="h-2.5 bg-border/40 rounded animate-pulse w-14" /></td>
+      <td className="pr-4" />
+    </tr>
+  );
+}
+
+// ─── Empty state ────────────────────────────────────────────────────────────
+function EmptyState({ hasSearch }: { hasSearch: boolean }) {
+  return (
+    <tr><td colSpan={7}>
+      <div className="py-16 flex flex-col items-center gap-4 text-center">
+        <div className="w-12 h-12 rounded-xl bg-surface border border-border flex items-center justify-center">
+          {hasSearch ? (
+            <svg className="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+          ) : (
+            <svg className="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+          )}
+        </div>
+        <div>
+          <p className="text-sm text-text font-medium">{hasSearch ? "Nessun risultato" : "Nessuna nota ancora"}</p>
+          <p className="text-xs text-muted mt-1">{hasSearch ? "Prova con parole chiave diverse" : "Crea la tua prima nota con il pulsante \"+ Nuovo\""}</p>
+        </div>
+      </div>
+    </td></tr>
   );
 }
 
@@ -180,13 +236,21 @@ function NoteRow({
       <td className="pr-4"><StatusBadge status={note.status} /></td>
       <td className="pr-4"><DateCell ts={note.startDate} /></td>
       <td className="pr-4"><DateCell ts={note.dueDate} /></td>
-      <td className="pr-4"><TagsCell tags={note.tags} /></td>
+      <td className="pr-4"><TagsCell tags={note.tags} tagColors={(note as NoteDoc).tagColors} /></td>
     </motion.tr>
   );
 }
 
 // ─── Task row (Level 1) ───────────────────────────────────────────────────────
-function TaskRow({ task, onEdit, onEditTask }: { task: TaskDoc; onEdit: (note: NoteDoc) => void; onEditTask: (task: TaskDoc) => void }) {
+function TaskRow({ task, onEdit, onEditTask, selected, onSelectTask }: {
+  task: TaskDoc;
+  onEdit: (note: NoteDoc) => void;
+  onEditTask: (task: TaskDoc) => void;
+  selected: boolean;
+  onSelectTask: (id: Id<"tasks">) => void;
+}) {
+  const hasChildren = task.linkedNoteIds.length > 0;
+  const [hovered, setHovered] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -197,13 +261,27 @@ function TaskRow({ task, onEdit, onEditTask }: { task: TaskDoc; onEdit: (note: N
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, height: 0 }}
         transition={{ duration: 0.18 }}
-        onClick={() => setExpanded((v) => !v)}
-        className="border-b border-border cursor-pointer hover:bg-surface/40 transition-colors"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onClick={() => hasChildren && setExpanded((v) => !v)}
+        className={cn("border-b border-border transition-colors", hasChildren ? "cursor-pointer hover:bg-surface/40" : "hover:bg-surface/20")}
       >
         <td className="w-10 pl-3">
-          <span className={cn("inline-block text-muted text-xs transition-transform", expanded && "rotate-90")}>
-            ▶
-          </span>
+          <div className="flex items-center justify-center">
+            {hasChildren ? (
+              <span className={cn("inline-block text-muted text-xs transition-transform", expanded && "rotate-90")}>▶</span>
+            ) : (
+              <input
+                type="checkbox"
+                checked={selected}
+                onChange={(e) => { e.stopPropagation(); onSelectTask(task._id); }}
+                className={cn(
+                  "rounded border-border bg-transparent accent-violet-500 transition-opacity",
+                  hovered || selected ? "opacity-100" : "opacity-0"
+                )}
+              />
+            )}
+          </div>
         </td>
         <td
           className="py-3 pr-4 text-sm font-medium cursor-pointer hover:text-accent transition-colors"
@@ -225,7 +303,7 @@ function TaskRow({ task, onEdit, onEditTask }: { task: TaskDoc; onEdit: (note: N
 }
 
 // ─── Feed ─────────────────────────────────────────────────────────────────────
-export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search }: FeedProps) {
+export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search, typeFilter, tagFilter, selectedTaskIds, onSelectTask }: FeedProps) {
   const { t } = useLocale();
   const topNotes = useQuery(api.notes.listTopLevel);
   const tasks = useQuery(api.tasks.listAll);
@@ -245,18 +323,27 @@ export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search }: 
   const { sortedNotes, sortedTasks } = useMemo(() => {
     if (!topNotes || !tasks) return { sortedNotes: [], sortedTasks: [] };
 
+    const showNotes = typeFilter === "all" || typeFilter === "note";
+    const showTasks = typeFilter === "all" || typeFilter === "task";
+
     const filtered = <T extends { title: string; status: string; tags?: string[] }>(
       items: T[]
-    ): T[] =>
-      !q
-        ? items
-        : items.filter(
-            (i) =>
-              i.title.toLowerCase().includes(q) ||
-              ("text" in i && typeof (i as { text?: string }).text === "string" &&
-                ((i as { text: string }).text.toLowerCase().includes(q))) ||
-              i.tags?.some((tag) => tag.toLowerCase().includes(q))
-          );
+    ): T[] => {
+      let result = items;
+      if (q) {
+        result = result.filter(
+          (i) =>
+            i.title.toLowerCase().includes(q) ||
+            ("text" in i && typeof (i as { text?: string }).text === "string" &&
+              ((i as { text: string }).text.toLowerCase().includes(q))) ||
+            i.tags?.some((tag) => tag.toLowerCase().includes(q))
+        );
+      }
+      if (tagFilter) {
+        result = result.filter((i) => i.tags?.includes(tagFilter));
+      }
+      return result;
+    };
 
     const applySort = <T extends { title: string; status: string; startDate?: number; dueDate?: number; tags?: string[] }>(
       items: T[]
@@ -276,13 +363,32 @@ export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search }: 
     };
 
     return {
-      sortedNotes: applySort(filtered(topNotes as NoteDoc[])),
-      sortedTasks: applySort(filtered(tasks as TaskDoc[])),
+      sortedNotes: showNotes ? applySort(filtered(topNotes as NoteDoc[])) : [],
+      sortedTasks: showTasks ? applySort(filtered(tasks as TaskDoc[])) : [],
     };
-  }, [topNotes, tasks, q, sort]);
+  }, [topNotes, tasks, q, sort, typeFilter, tagFilter]);
 
   if (!topNotes || !tasks) {
-    return <div className="py-12 text-center text-muted text-sm">Loading…</div>;
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full text-text">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="w-10" />
+              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">Titolo</th>
+              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">Tipo</th>
+              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">Stato</th>
+              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">Inizio</th>
+              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">Scadenza</th>
+              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">Tag</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[0, 1, 2, 3, 4].map((i) => <SkeletonRow key={i} index={i} />)}
+          </tbody>
+        </table>
+      </div>
+    );
   }
 
   const hasItems = sortedNotes.length > 0 || sortedTasks.length > 0;
@@ -315,17 +421,20 @@ export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search }: 
                 />
               ))}
               {sortedTasks.map((task) => (
-                <TaskRow key={task._id} task={task} onEdit={onEdit} onEditTask={onEditTask} />
+                <TaskRow
+                  key={task._id}
+                  task={task}
+                  onEdit={onEdit}
+                  onEditTask={onEditTask}
+                  selected={selectedTaskIds.has(task._id as Id<"tasks">)}
+                  onSelectTask={onSelectTask}
+                />
               ))}
             </AnimatePresence>
           </tbody>
         </table>
 
-        {!hasItems && (
-          <p className="py-12 text-center text-muted text-sm">
-            {search ? "Nessun risultato per questa ricerca." : t("feed_empty")}
-          </p>
-        )}
+              {!hasItems && <EmptyState hasSearch={!!search} />}
       </div>
     </div>
   );

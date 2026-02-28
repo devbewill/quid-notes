@@ -41,6 +41,7 @@ export const create = mutation({
     startDate: v.optional(v.number()),
     dueDate: v.optional(v.number()),
     tags: v.optional(v.array(v.string())),
+    tagColors: v.optional(v.array(v.object({ name: v.string(), color: v.string() }))),
   },
   handler: async (ctx, args) => {
     const user = await requireAuth(ctx);
@@ -53,6 +54,7 @@ export const create = mutation({
       startDate: args.startDate ?? now,
       dueDate: args.dueDate,
       tags: args.tags,
+      tagColors: args.tagColors,
       createdAt: now,
       updatedAt: now,
     });
@@ -75,6 +77,7 @@ export const update = mutation({
     startDate: v.optional(v.number()),
     dueDate: v.optional(v.number()),
     tags: v.optional(v.array(v.string())),
+    tagColors: v.optional(v.array(v.object({ name: v.string(), color: v.string() }))),
   },
   handler: async (ctx, args) => {
     const user = await requireAuth(ctx);

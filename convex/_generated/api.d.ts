@@ -15,6 +15,8 @@ import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as notes from "../notes.js";
 import type * as scheduled_hardDeleteUsers from "../scheduled/hardDeleteUsers.js";
+import type * as seed from "../seed.js";
+import type * as tags from "../tags.js";
 import type * as tasks from "../tasks.js";
 import type * as users from "../users.js";
 
@@ -32,6 +34,8 @@ declare const fullApi: ApiFromModules<{
   "lib/auth": typeof lib_auth;
   notes: typeof notes;
   "scheduled/hardDeleteUsers": typeof scheduled_hardDeleteUsers;
+  seed: typeof seed;
+  tags: typeof tags;
   tasks: typeof tasks;
   users: typeof users;
 }>;

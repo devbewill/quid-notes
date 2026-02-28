@@ -15,6 +15,7 @@ export interface NoteDoc {
   startDate?: number;
   dueDate?: number;
   tags?: string[];
+  tagColors?: Array<{ name: string; color: string }>;
   parentTaskId?: Id<"tasks">;
   createdAt: number;
   updatedAt: number;

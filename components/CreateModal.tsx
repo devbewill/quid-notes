@@ -59,7 +59,7 @@ export function CreateModal({ onClose }: Props) {
               type="button"
               onClick={() => setType(t)}
               className={cn(
-                "px-4 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors",
                 type === t
                   ? t === "note"
                     ? "bg-slate-500/20 text-slate-300"
@@ -67,6 +67,11 @@ export function CreateModal({ onClose }: Props) {
                   : "text-muted hover:text-text"
               )}
             >
+              {t === "note" ? (
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" /></svg>
+              ) : (
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" /></svg>
+              )}
               {t === "note" ? "Nota" : "Task"}
             </button>
           ))}

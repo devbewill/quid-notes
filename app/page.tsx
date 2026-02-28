@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useState, useMemo } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { NoteDoc, TaskDoc } from "@/lib/types";
+import { cn } from "@/lib/cn";
 import { Feed } from "@/components/Feed";
 import { ActivateBar } from "@/components/ActivateBar";
 import { ActivateModal } from "@/components/ActivateModal";
@@ -16,18 +17,45 @@ import { ConsentBanner } from "@/components/ConsentBanner";
 import { NoteEditPanel } from "@/components/NoteEditPanel";
 import { TaskEditPanel } from "@/components/TaskEditPanel";
 import { CreateModal } from "@/components/CreateModal";
+import { TagsPanel } from "@/components/TagsPanel";
 
 export default function Home() {
   const router = useRouter();
   useAuthActions();
   const user = useQuery(api.users.current);
+  const sidebarNotes = useQuery(api.notes.listTopLevel);
+  const sidebarTasks = useQuery(api.tasks.listAll);
+
+  const seedDemo = useMutation(api.seed.seedDemoData);
 
   const [selectedNoteIds, setSelectedNoteIds] = useState<Set<Id<"notes">>>(new Set());
   const [showActivateModal, setShowActivateModal] = useState(false);
   const [editNote, setEditNote] = useState<NoteDoc | null>(null);
   const [editTask, setEditTask] = useState<TaskDoc | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showTagsPanel, setShowTagsPanel] = useState(false);
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"all" | "note" | "task">("all");
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<Id<"tasks">>>(new Set());
+
+  const uniqueTags = useMemo(() => {
+    if (!sidebarNotes) return [];
+    const set = new Set<string>();
+    sidebarNotes.forEach((n) => (n as NoteDoc).tags?.forEach((t) => set.add(t)));
+    return [...set].sort();
+  }, [sidebarNotes]);
+
+  const globalTagColors = useMemo((): Record<string, string> => {
+    if (!sidebarNotes) return {};
+    const map: Record<string, string> = {};
+    sidebarNotes.forEach((n) => {
+      (n as NoteDoc).tagColors?.forEach((tc) => {
+        if (!map[tc.name]) map[tc.name] = tc.color; // first occurrence wins
+      });
+    });
+    return map;
+  }, [sidebarNotes]);
 
   if (user === null) {
     router.push("/signin");
@@ -36,6 +64,15 @@ export default function Home() {
 
   const handleSelect = (id: Id<"notes">) => {
     setSelectedNoteIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleSelectTask = (id: Id<"tasks">) => {
+    setSelectedTaskIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -54,21 +91,85 @@ export default function Home() {
     <div className="flex h-screen overflow-hidden">
       {/* ── Sidebar ─────────────────────────────────────────────────────── */}
       <aside className="w-56 bg-surface border-r border-border flex flex-col shrink-0">
-        <nav className="flex-1 pt-6 px-2">
-          <p className="text-xs text-muted uppercase tracking-widest px-2 mb-3">QUID</p>
+        {/* Logo */}
+        <div className="px-4 py-4 border-b border-border flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center shrink-0">
+            <span className="text-bg text-xs font-black">Q</span>
+          </div>
+          <div className="leading-none">
+            <p className="text-sm font-bold text-text tracking-tight">QUID</p>
+            <p className="text-[9px] text-muted tracking-widest mt-0.5 uppercase">Notes & Tasks</p>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-2 px-3 py-3 border-b border-border">
+          <div className="rounded-lg bg-bg border border-border px-3 py-2">
+            <p className="text-[9px] text-muted uppercase tracking-widest font-medium">Note</p>
+            <p className="text-xl font-bold text-text tabular-nums leading-tight">{sidebarNotes?.length ?? "–"}</p>
+          </div>
+          <div className="rounded-lg bg-bg border border-border px-3 py-2">
+            <p className="text-[9px] text-muted uppercase tracking-widest font-medium">Task</p>
+            <p className="text-xl font-bold text-text tabular-nums leading-tight">{sidebarTasks?.length ?? "–"}</p>
+          </div>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 pt-3 px-2">
+          <p className="text-[9px] text-muted uppercase tracking-widest px-2 mb-2 font-medium">Viste</p>
           <ul className="flex flex-col gap-0.5">
             <li>
-              <button className="w-full text-left text-sm px-3 py-2 rounded-lg text-text bg-bg/40">
+              <button className="w-full text-left flex items-center gap-2.5 text-sm px-3 py-2 rounded-lg text-text bg-bg/40 font-medium">
+                <svg className="w-4 h-4 text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z" /></svg>
                 Inbox
+                {sidebarNotes !== undefined && (
+                  <span className="ml-auto text-[10px] text-muted tabular-nums bg-border/50 rounded px-1.5 py-0.5">{sidebarNotes.length}</span>
+                )}
               </button>
             </li>
             <li>
-              <button className="w-full text-left text-sm px-3 py-2 rounded-lg text-muted hover:text-text transition-colors">
+              <button className="w-full text-left flex items-center gap-2.5 text-sm px-3 py-2 rounded-lg text-muted hover:text-text transition-colors">
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" /></svg>
                 Active Tasks
+                {sidebarTasks !== undefined && (
+                  <span className="ml-auto text-[10px] text-muted tabular-nums">{sidebarTasks.filter((t) => t.status === "active").length}</span>
+                )}
+              </button>
+            </li>
+            <li>
+              <button className="w-full text-left flex items-center gap-2.5 text-sm px-3 py-2 rounded-lg text-muted hover:text-text transition-colors">
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                Completati
+                {sidebarTasks !== undefined && (
+                  <span className="ml-auto text-[10px] text-muted tabular-nums">{sidebarTasks.filter((t) => t.status === "completed").length}</span>
+                )}
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => setShowTagsPanel(true)}
+                className="w-full text-left flex items-center gap-2.5 text-sm px-3 py-2 rounded-lg text-muted hover:text-text transition-colors"
+              >
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" /></svg>
+                Tags
+                {uniqueTags.length > 0 && (
+                  <span className="ml-auto text-[10px] text-muted tabular-nums">{uniqueTags.length}</span>
+                )}
               </button>
             </li>
           </ul>
+          {/* Seed demo button */}
+          <div className="px-3 pb-3">
+            <button
+              onClick={() => seedDemo().catch(console.error)}
+              className="w-full text-[10px] text-muted hover:text-text border border-border/50 hover:border-border rounded-lg px-3 py-1.5 transition-colors text-left"
+            >
+              🎲 Aggiungi dati demo
+            </button>
+          </div>
         </nav>
+
+        {/* Account */}
         <div className="border-t border-border relative">
           <AccountMenu />
         </div>
@@ -77,7 +178,7 @@ export default function Home() {
       {/* ── Main ────────────────────────────────────────────────────────── */}
       <main className="flex-1 bg-bg overflow-hidden flex flex-col min-w-0">
         {/* Topbar */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-border shrink-0">
+        <div className="flex items-center gap-3 px-4 pt-6 pb-3 border-b border-border shrink-0">
           {/* Search */}
           <div className="flex-1 flex items-center gap-2 bg-surface border border-border rounded-lg px-3 py-2 focus-within:border-accent transition-colors">
             <svg className="w-4 h-4 text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,24 +187,80 @@ export default function Home() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cerca note e task per titolo, testo o tag…"
+              placeholder="Cerca note, task, tag…"
               className="flex-1 bg-transparent text-sm text-text placeholder:text-muted outline-none"
             />
-            {search && (
-              <button onClick={() => setSearch("")} className="text-muted hover:text-text text-lg leading-none transition-colors">
-                ×
-              </button>
+            {search ? (
+              <button onClick={() => setSearch("")} className="text-muted hover:text-text text-lg leading-none transition-colors">×</button>
+            ) : (
+              <kbd className="hidden md:inline-flex text-[10px] text-muted border border-border rounded px-1.5 py-0.5 font-mono leading-none">⌘K</kbd>
             )}
           </div>
 
           {/* Create button */}
           <button
             onClick={() => setShowCreate(true)}
-            className="shrink-0 flex items-center gap-1.5 bg-violet-500 hover:bg-violet-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            className="shrink-0 flex items-center gap-1.5 bg-violet-500 hover:bg-violet-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm shadow-violet-500/30"
           >
-            <span className="text-base leading-none">+</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.5v15m7.5-7.5h-15" /></svg>
             Nuovo
           </button>
+        </div>
+
+        {/* Filter bar */}
+        <div className="flex items-center gap-2 px-4 py-2 border-b border-border shrink-0 flex-wrap min-h-[40px]">
+          {/* Type toggle */}
+          <div className="flex gap-0.5 bg-bg rounded-lg p-0.5">
+            {(["all", "note", "task"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTypeFilter(t)}
+                className={cn(
+                  "text-xs px-3 py-1 rounded-md font-medium transition-colors",
+                  typeFilter === t ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text"
+                )}
+              >
+                {t === "all" ? "Tutti" : t === "note" ? "Note" : "Task"}
+              </button>
+            ))}
+          </div>
+
+          {uniqueTags.length > 0 && <div className="w-px h-4 bg-border" />}
+
+          {/* Tag chips */}
+          <div className="flex gap-1.5 flex-wrap">
+            {uniqueTags.map((tag) => {
+              const c = globalTagColors[tag];
+              return (
+                <button
+                  key={tag}
+                  onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
+                  className={cn(
+                    "text-xs px-1.5 py-0.5 rounded font-medium transition-all",
+                    !c && (tagFilter === tag
+                      ? "bg-amber-500/40 text-amber-200 ring-1 ring-amber-400/60"
+                      : "bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/25 hover:bg-amber-500/30")
+                  )}
+                  style={c ? {
+                    background: tagFilter === tag ? `${c}50` : `${c}28`,
+                    color: tagFilter === tag ? `${c}` : c,
+                    boxShadow: tagFilter === tag ? `0 0 0 1px ${c}80` : `0 0 0 1px ${c}44`,
+                  } : undefined}
+                >
+                  {tag}
+                </button>
+              );
+            })}
+          </div>
+
+          {(typeFilter !== "all" || tagFilter !== null) && (
+            <button
+              onClick={() => { setTypeFilter("all"); setTagFilter(null); }}
+              className="ml-auto text-xs text-muted hover:text-text transition-colors flex items-center gap-1"
+            >
+              <span>×</span> Rimuovi filtri
+            </button>
+          )}
         </div>
 
         {/* Feed */}
@@ -114,6 +271,10 @@ export default function Home() {
             onEdit={setEditNote}
             onEditTask={setEditTask}
             search={search}
+            typeFilter={typeFilter}
+            tagFilter={tagFilter}
+            selectedTaskIds={selectedTaskIds}
+            onSelectTask={handleSelectTask}
           />
         </div>
       </main>
@@ -121,7 +282,7 @@ export default function Home() {
       {/* ── Note edit overlay ────────────────────────────────────────────── */}
       <AnimatePresence>
         {editNote && (
-          <NoteEditPanel note={editNote} onClose={() => setEditNote(null)} />
+          <NoteEditPanel note={editNote} onClose={() => setEditNote(null)} globalTagColors={globalTagColors} />
         )}
       </AnimatePresence>
 
@@ -158,8 +319,17 @@ export default function Home() {
         )}
       </AnimatePresence>
 
+      {/* ── Tags panel ────────────────────────────────────────────────────── */}
+      {showTagsPanel && (
+        <TagsPanel
+          globalTagColors={globalTagColors}
+          onClose={() => setShowTagsPanel(false)}
+        />
+      )}
+
       {/* ── Consent banner ───────────────────────────────────────────────── */}
       <ConsentBanner />
+
     </div>
   );
 }

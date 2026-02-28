@@ -80,21 +80,25 @@ export function TaskEditPanel({ task, onClose }: Props) {
         className="relative z-10 w-full max-w-4xl min-w-[55%] h-[72vh] bg-surface border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
-          {/* Task badge */}
-          <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/25 text-violet-300 ring-1 ring-violet-400/30 font-medium shrink-0">
+        <div className="flex items-start gap-3 px-6 py-4 border-b border-border">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/25 text-violet-300 ring-1 ring-violet-400/30 font-medium shrink-0 mt-1">
             TASK
           </span>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onBlur={() => commit()}
-            placeholder="Titolo task…"
-            className="flex-1 text-lg font-semibold bg-transparent outline-none text-text placeholder:text-muted border-none"
-          />
+          <div className="flex-1 min-w-0">
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => commit()}
+              placeholder="Titolo task…"
+              className="w-full text-lg font-semibold bg-transparent outline-none text-text placeholder:text-muted border-none"
+            />
+            <p className="text-[10px] text-muted mt-0.5 tabular-nums">
+              Modificato {new Date(task.updatedAt).toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" })}
+            </p>
+          </div>
           <button
             onClick={handleClose}
-            className="text-muted hover:text-text text-2xl leading-none transition-colors shrink-0"
+            className="text-muted hover:text-text text-2xl leading-none transition-colors shrink-0 mt-0.5"
           >
             ×
           </button>
@@ -106,7 +110,10 @@ export function TaskEditPanel({ task, onClose }: Props) {
           <div className="w-56 shrink-0 border-r border-border p-5 flex flex-col gap-5 overflow-y-auto">
             {/* Status */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-muted uppercase tracking-widest">Stato</label>
+              <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                Stato
+              </label>
               <select
                 value={status}
                 onChange={(e) => {
@@ -124,7 +131,10 @@ export function TaskEditPanel({ task, onClose }: Props) {
 
             {/* Start date */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-muted uppercase tracking-widest">Inizio</label>
+              <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+                Inizio
+              </label>
               <input
                 type="date"
                 value={startDate}
@@ -136,7 +146,10 @@ export function TaskEditPanel({ task, onClose }: Props) {
 
             {/* Due date */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-muted uppercase tracking-widest">Scadenza</label>
+              <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                Scadenza
+              </label>
               <input
                 type="date"
                 value={dueDate}
@@ -149,7 +162,8 @@ export function TaskEditPanel({ task, onClose }: Props) {
             {/* Linked notes */}
             {linkedNotes && linkedNotes.length > 0 && (
               <div className="flex flex-col gap-2">
-                <label className="text-xs text-muted uppercase tracking-widest">
+                <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" /></svg>
                   Note collegate ({linkedNotes.length})
                 </label>
                 <div className="flex flex-col gap-1.5">

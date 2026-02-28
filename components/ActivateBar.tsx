@@ -22,8 +22,8 @@ export function ActivateBar({ count, onClear, onActivate }: ActivateBarProps) {
       transition={{ duration: 0.2 }}
       className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50
                  flex items-center gap-6
-                 bg-surface border border-border rounded-full
-                 px-6 py-3 shadow-2xl"
+                 bg-surface/80 backdrop-blur-xl border border-border/60 rounded-full
+                 px-6 py-3 shadow-2xl ring-1 ring-white/5"
     >
       <button
         onClick={onClear}
