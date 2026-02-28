@@ -5,6 +5,7 @@ import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import type { NoteDoc } from "@/lib/types";
+import { MarkdownEditor } from "@/components/MarkdownEditor";
 
 interface Props {
   note: NoteDoc;
@@ -287,14 +288,12 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
             </div>
           </div>
 
-          {/* Right: text body */}
-          <div className="flex-1 p-6 overflow-y-auto">
-            <textarea
+          {/* Right: markdown editor */}
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <MarkdownEditor
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={setText}
               onBlur={() => commit()}
-              placeholder="Scrivi qui il contenuto della nota…"
-              className="w-full h-full min-h-full bg-transparent text-sm text-text outline-none resize-none placeholder:text-muted leading-relaxed"
             />
           </div>
         </div>
