@@ -13,6 +13,7 @@ interface FeedProps {
   selectedNoteIds: Set<Id<"notes">>;
   onSelect: (id: Id<"notes">) => void;
   onEdit: (note: NoteDoc) => void;
+  onEditTask: (task: TaskDoc) => void;
   search: string;
 }
 
@@ -139,14 +140,6 @@ function NoteRow({
 }) {
   const [hovered, setHovered] = useState(false);
 
-  const handleClick = (e: React.MouseEvent) => {
-    if (e.metaKey || e.ctrlKey) {
-      if (!isChild) onSelect(note._id);
-    } else {
-      onEdit(note);
-    }
-  };
-
   return (
     <motion.tr
       layout
@@ -156,9 +149,8 @@ function NoteRow({
       transition={{ duration: 0.18 }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onClick={handleClick}
       className={cn(
-        "group border-b border-border cursor-pointer transition-colors",
+        "group border-b border-border transition-colors",
         selected ? "bg-surface/80" : "hover:bg-surface/40",
         isChild && "opacity-70"
       )}
@@ -178,7 +170,12 @@ function NoteRow({
           />
         )}
       </td>
-      <td className={cn("py-3 pr-4 text-sm", isChild && "pl-8")}>{note.title}</td>
+      <td
+        className={cn("py-3 pr-4 text-sm cursor-pointer hover:text-accent transition-colors", isChild && "pl-8")}
+        onClick={() => onEdit(note)}
+      >
+        {note.title}
+      </td>
       <td className="pr-4"><TypeBadge type="NOTE" /></td>
       <td className="pr-4"><StatusBadge status={note.status} /></td>
       <td className="pr-4"><DateCell ts={note.startDate} /></td>
@@ -189,7 +186,7 @@ function NoteRow({
 }
 
 // ─── Task row (Level 1) ───────────────────────────────────────────────────────
-function TaskRow({ task, onEdit }: { task: TaskDoc; onEdit: (note: NoteDoc) => void }) {
+function TaskRow({ task, onEdit, onEditTask }: { task: TaskDoc; onEdit: (note: NoteDoc) => void; onEditTask: (task: TaskDoc) => void }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -208,7 +205,12 @@ function TaskRow({ task, onEdit }: { task: TaskDoc; onEdit: (note: NoteDoc) => v
             ▶
           </span>
         </td>
-        <td className="py-3 pr-4 text-sm font-medium">{task.title}</td>
+        <td
+          className="py-3 pr-4 text-sm font-medium cursor-pointer hover:text-accent transition-colors"
+          onClick={(e) => { e.stopPropagation(); onEditTask(task); }}
+        >
+          {task.title}
+        </td>
         <td className="pr-4"><TypeBadge type="TASK" /></td>
         <td className="pr-4"><StatusBadge status={task.status} /></td>
         <td className="pr-4"><DateCell ts={task.startDate} /></td>
@@ -223,7 +225,7 @@ function TaskRow({ task, onEdit }: { task: TaskDoc; onEdit: (note: NoteDoc) => v
 }
 
 // ─── Feed ─────────────────────────────────────────────────────────────────────
-export function Feed({ selectedNoteIds, onSelect, onEdit, search }: FeedProps) {
+export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search }: FeedProps) {
   const { t } = useLocale();
   const topNotes = useQuery(api.notes.listTopLevel);
   const tasks = useQuery(api.tasks.listAll);
@@ -313,7 +315,7 @@ export function Feed({ selectedNoteIds, onSelect, onEdit, search }: FeedProps) {
                 />
               ))}
               {sortedTasks.map((task) => (
-                <TaskRow key={task._id} task={task} onEdit={onEdit} />
+                <TaskRow key={task._id} task={task} onEdit={onEdit} onEditTask={onEditTask} />
               ))}
             </AnimatePresence>
           </tbody>

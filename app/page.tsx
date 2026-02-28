@@ -7,13 +7,14 @@ import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import type { NoteDoc } from "@/lib/types";
+import type { NoteDoc, TaskDoc } from "@/lib/types";
 import { Feed } from "@/components/Feed";
 import { ActivateBar } from "@/components/ActivateBar";
 import { ActivateModal } from "@/components/ActivateModal";
 import { AccountMenu } from "@/components/AccountMenu";
 import { ConsentBanner } from "@/components/ConsentBanner";
 import { NoteEditPanel } from "@/components/NoteEditPanel";
+import { TaskEditPanel } from "@/components/TaskEditPanel";
 import { CreateModal } from "@/components/CreateModal";
 
 export default function Home() {
@@ -24,6 +25,7 @@ export default function Home() {
   const [selectedNoteIds, setSelectedNoteIds] = useState<Set<Id<"notes">>>(new Set());
   const [showActivateModal, setShowActivateModal] = useState(false);
   const [editNote, setEditNote] = useState<NoteDoc | null>(null);
+  const [editTask, setEditTask] = useState<TaskDoc | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -110,6 +112,7 @@ export default function Home() {
             selectedNoteIds={selectedNoteIds}
             onSelect={handleSelect}
             onEdit={setEditNote}
+            onEditTask={setEditTask}
             search={search}
           />
         </div>
@@ -119,6 +122,13 @@ export default function Home() {
       <AnimatePresence>
         {editNote && (
           <NoteEditPanel note={editNote} onClose={() => setEditNote(null)} />
+        )}
+      </AnimatePresence>
+
+      {/* ── Task edit overlay ─────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {editTask && (
+          <TaskEditPanel task={editTask} onClose={() => setEditTask(null)} />
         )}
       </AnimatePresence>
 
