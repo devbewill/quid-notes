@@ -40,6 +40,7 @@ export const create = mutation({
     text: v.string(),
     startDate: v.optional(v.number()),
     dueDate: v.optional(v.number()),
+    tags: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const user = await requireAuth(ctx);
@@ -51,6 +52,7 @@ export const create = mutation({
       status: "idle",
       startDate: args.startDate,
       dueDate: args.dueDate,
+      tags: args.tags,
       createdAt: now,
       updatedAt: now,
     });
@@ -72,6 +74,7 @@ export const update = mutation({
     ),
     startDate: v.optional(v.number()),
     dueDate: v.optional(v.number()),
+    tags: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const user = await requireAuth(ctx);

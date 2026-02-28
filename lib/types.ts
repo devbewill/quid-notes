@@ -14,6 +14,7 @@ export interface NoteDoc {
   status: "idle" | "active" | "completed";
   startDate?: number;
   dueDate?: number;
+  tags?: string[];
   parentTaskId?: Id<"tasks">;
   createdAt: number;
   updatedAt: number;

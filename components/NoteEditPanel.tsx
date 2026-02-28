@@ -28,25 +28,47 @@ export function NoteEditPanel({ note, onClose }: Props) {
   const [status, setStatus] = useState(note.status);
   const [startDate, setStartDate] = useState(tsToDate(note.startDate ?? note.createdAt));
   const [dueDate, setDueDate] = useState(tsToDate(note.dueDate));
+  const [tags, setTags] = useState<string[]>(note.tags ?? []);
+  const [tagInput, setTagInput] = useState("");
 
-  // Re-sync when a different note is selected
   useEffect(() => {
     setTitle(note.title);
     setText(note.text);
     setStatus(note.status);
     setStartDate(tsToDate(note.startDate ?? note.createdAt));
     setDueDate(tsToDate(note.dueDate));
+    setTags(note.tags ?? []);
+    setTagInput("");
   }, [note._id]);
 
-  const commit = (statusOverride?: "idle" | "active" | "completed") =>
+  const commit = (overrides: {
+    status?: "idle" | "active" | "completed";
+    tags?: string[];
+  } = {}) =>
     void update({
       noteId: note._id,
       title,
       text,
-      status: statusOverride ?? status,
+      status: overrides.status ?? status,
       startDate: dateToTs(startDate),
       dueDate: dateToTs(dueDate),
+      tags: overrides.tags ?? tags,
     });
+
+  const addTag = () => {
+    const t = tagInput.trim().toLowerCase();
+    if (!t || tags.includes(t)) { setTagInput(""); return; }
+    const next = [...tags, t];
+    setTags(next);
+    setTagInput("");
+    commit({ tags: next });
+  };
+
+  const removeTag = (tag: string) => {
+    const next = tags.filter((t) => t !== tag);
+    setTags(next);
+    commit({ tags: next });
+  };
 
   const handleDelete = async () => {
     await remove({ noteId: note._id });
@@ -64,10 +86,7 @@ export function NoteEditPanel({ note, onClose }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <span className="text-xs text-muted uppercase tracking-widest">Nota</span>
-        <button
-          onClick={onClose}
-          className="text-muted hover:text-text text-xl leading-none transition-colors"
-        >
+        <button onClick={onClose} className="text-muted hover:text-text text-xl leading-none transition-colors">
           ×
         </button>
       </div>
@@ -90,12 +109,12 @@ export function NoteEditPanel({ note, onClose }: Props) {
             onChange={(e) => {
               const s = e.target.value as "idle" | "active" | "completed";
               setStatus(s);
-              commit(s);
+              commit({ status: s });
             }}
             className="bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text outline-none focus:border-accent transition-colors"
           >
-            <option value="idle">Idle</option>
-            <option value="active">Active</option>
+            <option value="idle">To Do</option>
+            <option value="active">In Progress</option>
             <option value="completed">Completed</option>
           </select>
         </div>
@@ -124,6 +143,32 @@ export function NoteEditPanel({ note, onClose }: Props) {
           </div>
         </div>
 
+        {/* Tags */}
+        <div className="flex flex-col gap-2">
+          <label className="text-xs text-muted uppercase tracking-widest">Tag</label>
+          <div className="flex flex-wrap gap-1.5 mb-1">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/25"
+              >
+                {tag}
+                <button onClick={() => removeTag(tag)} className="hover:text-white leading-none">
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+          <input
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(); } }}
+            onBlur={addTag}
+            placeholder="Aggiungi tag e premi Invio"
+            className="bg-bg border border-border rounded-lg px-3 py-1.5 text-xs text-text outline-none focus:border-accent transition-colors placeholder:text-muted"
+          />
+        </div>
+
         {/* Text */}
         <div className="flex flex-col gap-1.5 flex-1">
           <label className="text-xs text-muted uppercase tracking-widest">Note</label>
@@ -140,10 +185,7 @@ export function NoteEditPanel({ note, onClose }: Props) {
 
       {/* Footer */}
       <div className="px-4 py-3 border-t border-border">
-        <button
-          onClick={handleDelete}
-          className="text-xs text-rose-400 hover:text-rose-300 transition-colors"
-        >
+        <button onClick={handleDelete} className="text-xs text-rose-400 hover:text-rose-300 transition-colors">
           Elimina nota
         </button>
       </div>
