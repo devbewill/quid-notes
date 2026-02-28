@@ -13,6 +13,7 @@ interface FeedProps {
   selectedNoteIds: Set<Id<"notes">>;
   onSelect: (id: Id<"notes">) => void;
   onEdit: (note: NoteDoc) => void;
+  search: string;
 }
 
 type SortCol = "title" | "type" | "status" | "startDate" | "dueDate" | "tags";
@@ -222,12 +223,11 @@ function TaskRow({ task, onEdit }: { task: TaskDoc; onEdit: (note: NoteDoc) => v
 }
 
 // ─── Feed ─────────────────────────────────────────────────────────────────────
-export function Feed({ selectedNoteIds, onSelect, onEdit }: FeedProps) {
+export function Feed({ selectedNoteIds, onSelect, onEdit, search }: FeedProps) {
   const { t } = useLocale();
   const topNotes = useQuery(api.notes.listTopLevel);
   const tasks = useQuery(api.tasks.listAll);
 
-  const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortState>(null);
 
   const handleSort = (col: SortCol) => {
@@ -286,25 +286,7 @@ export function Feed({ selectedNoteIds, onSelect, onEdit }: FeedProps) {
   const hasItems = sortedNotes.length > 0 || sortedTasks.length > 0;
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* ── Search bar ────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 bg-surface border border-border rounded-lg px-4 py-3 focus-within:border-accent transition-colors">
-        <svg className="w-4 h-4 text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-        </svg>
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Cerca note e task per titolo, testo o tag…"
-          className="flex-1 bg-transparent text-sm text-text placeholder:text-muted outline-none"
-        />
-        {search && (
-          <button onClick={() => setSearch("")} className="text-muted hover:text-text text-lg leading-none transition-colors">
-            ×
-          </button>
-        )}
-      </div>
-
+    <div className="flex flex-col gap-2">
       {/* ── Table ─────────────────────────────────────────────────────── */}
       <div className="overflow-x-auto">
         <table className="w-full text-text">

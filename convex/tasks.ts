@@ -2,6 +2,31 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAuth } from "./lib/auth";
 
+/** Create a standalone task directly (no linked notes). */
+export const createDirect = mutation({
+  args: {
+    title: v.string(),
+    text: v.string(),
+    startDate: v.optional(v.number()),
+    dueDate: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const user = await requireAuth(ctx);
+    const now = Date.now();
+    return ctx.db.insert("tasks", {
+      ownerId: user._id,
+      title: args.title,
+      text: args.text,
+      status: "idle",
+      linkedNoteIds: [],
+      startDate: args.startDate,
+      dueDate: args.dueDate,
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
 /** All tasks for the authenticated user. */
 export const listAll = query({
   args: {},
