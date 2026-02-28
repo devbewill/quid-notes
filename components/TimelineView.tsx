@@ -113,6 +113,7 @@ function NoteCard({
   index: number;
 }) {
   const preview = stripMd(note.text);
+  const overdue = !!note.dueDate && note.status !== "completed" && note.dueDate < Date.now();
 
   return (
     <motion.article
@@ -132,6 +133,11 @@ function NoteCard({
         <div className="flex items-center gap-2 mb-2.5">
           <span className="text-[10px] font-bold tracking-widest uppercase text-slate-400/70">nota</span>
           <StatusPill status={note.status} />
+          {overdue && (
+            <span className="text-[9px] font-bold tracking-wide uppercase text-rose-400 bg-rose-500/15 px-1.5 py-0.5 rounded ring-1 ring-rose-400/25 animate-pulse">
+              Scaduto
+            </span>
+          )}
           <span className="ml-auto text-[10px] text-muted tabular-nums shrink-0">
             {new Date(note.updatedAt).toLocaleDateString("it-IT", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
           </span>
@@ -151,7 +157,10 @@ function NoteCard({
         <div className="flex items-center gap-2 flex-wrap">
           {note.tags?.map((t) => <TagChip key={t} name={t} globalTagColors={globalTagColors} />)}
           {note.dueDate && (
-            <span className="ml-auto text-[10px] text-muted flex items-center gap-1 shrink-0">
+            <span className={cn(
+              "ml-auto text-[10px] tabular-nums flex items-center gap-1 shrink-0",
+              overdue ? "text-rose-400 font-medium" : "text-muted"
+            )}>
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
               {new Date(note.dueDate).toLocaleDateString("it-IT", { day: "2-digit", month: "short" })}
             </span>
@@ -173,6 +182,7 @@ function TaskCard({
   index: number;
 }) {
   const preview = stripMd(task.text);
+  const overdue = !!task.dueDate && task.status !== "completed" && task.dueDate < Date.now();
 
   return (
     <motion.article
@@ -192,6 +202,11 @@ function TaskCard({
         <div className="flex items-center gap-2 mb-2.5">
           <span className="text-[10px] font-bold tracking-widest uppercase text-violet-400/70">task</span>
           <StatusPill status={task.status} />
+          {overdue && (
+            <span className="text-[9px] font-bold tracking-wide uppercase text-rose-400 bg-rose-500/15 px-1.5 py-0.5 rounded ring-1 ring-rose-400/25 animate-pulse">
+              Scaduto
+            </span>
+          )}
           {task.linkedNoteIds.length > 0 && (
             <span className="text-[10px] text-muted flex items-center gap-1">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" /></svg>
@@ -222,7 +237,10 @@ function TaskCard({
             </span>
           )}
           {task.dueDate && (
-            <span className="text-[10px] text-muted flex items-center gap-1">
+            <span className={cn(
+              "text-[10px] tabular-nums flex items-center gap-1",
+              overdue ? "text-rose-400 font-medium" : "text-muted"
+            )}>
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
               {new Date(task.dueDate).toLocaleDateString("it-IT", { day: "2-digit", month: "short" })}
             </span>

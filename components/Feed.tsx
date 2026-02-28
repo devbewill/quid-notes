@@ -57,14 +57,16 @@ function TypeBadge({ type }: { type: "NOTE" | "TASK" }) {
 }
 
 // ─── Date cell ────────────────────────────────────────────────────────────────
-function DateCell({ ts }: { ts?: number }) {
+function DateCell({ ts, overdue }: { ts?: number; overdue?: boolean }) {
   if (!ts) return <span className="text-muted text-xs">—</span>;
   return (
-    <span className="text-xs text-muted tabular-nums">
+    <span className={cn("text-xs tabular-nums flex items-center gap-1", overdue ? "text-rose-400 font-medium" : "text-muted")}>
+      {overdue && <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse shrink-0" />}
       {new Date(ts).toLocaleDateString("it-IT", { day: "2-digit", month: "short" })}
     </span>
   );
 }
+
 
 // ─── Tags cell ────────────────────────────────────────────────────────────────
 type TagColorEntry = { name: string; color: string };
@@ -235,7 +237,7 @@ function NoteRow({
       <td className="pr-4"><TypeBadge type="NOTE" /></td>
       <td className="pr-4"><StatusBadge status={note.status} /></td>
       <td className="pr-4"><DateCell ts={note.startDate} /></td>
-      <td className="pr-4"><DateCell ts={note.dueDate} /></td>
+      <td className="pr-4"><DateCell ts={note.dueDate} overdue={!!note.dueDate && note.status !== "completed" && note.dueDate < Date.now()} /></td>
       <td className="pr-4"><TagsCell tags={note.tags} tagColors={(note as NoteDoc).tagColors} /></td>
     </motion.tr>
   );
@@ -292,7 +294,7 @@ function TaskRow({ task, onEdit, onEditTask, selected, onSelectTask }: {
         <td className="pr-4"><TypeBadge type="TASK" /></td>
         <td className="pr-4"><StatusBadge status={task.status} /></td>
         <td className="pr-4"><DateCell ts={task.startDate} /></td>
-        <td className="pr-4"><DateCell ts={task.dueDate} /></td>
+        <td className="pr-4"><DateCell ts={task.dueDate} overdue={!!task.dueDate && task.status !== "completed" && task.dueDate < Date.now()} /></td>
         <td className="pr-4"><TagsCell tags={undefined} /></td>
       </motion.tr>
       <AnimatePresence>

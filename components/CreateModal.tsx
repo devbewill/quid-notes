@@ -8,13 +8,14 @@ import { cn } from "@/lib/cn";
 
 interface Props {
   onClose: () => void;
+  defaultType?: "note" | "task";
 }
 
-export function CreateModal({ onClose }: Props) {
+export function CreateModal({ onClose, defaultType = "note" }: Props) {
   const createNote = useMutation(api.notes.create);
   const createTask = useMutation(api.tasks.createDirect);
 
-  const [type, setType] = useState<"note" | "task">("note");
+  const [type, setType] = useState<"note" | "task">(defaultType);
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [startDate, setStartDate] = useState("");

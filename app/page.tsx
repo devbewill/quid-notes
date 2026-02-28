@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { AnimatePresence } from "framer-motion";
@@ -19,6 +19,8 @@ import { TaskEditPanel } from "@/components/TaskEditPanel";
 import { CreateModal } from "@/components/CreateModal";
 import { TagsPanel } from "@/components/TagsPanel";
 import { TimelineView } from "@/components/TimelineView";
+import { CommandPalette } from "@/components/CommandPalette";
+import { KanbanView } from "@/components/KanbanView";
 
 export default function Home() {
   const router = useRouter();
@@ -27,7 +29,6 @@ export default function Home() {
   const sidebarNotes = useQuery(api.notes.listTopLevel);
   const sidebarTasks = useQuery(api.tasks.listAll);
 
-  const seedDemo = useMutation(api.seed.seedDemoData);
 
   const [selectedNoteIds, setSelectedNoteIds] = useState<Set<Id<"notes">>>(new Set());
   const [showActivateModal, setShowActivateModal] = useState(false);
@@ -39,7 +40,9 @@ export default function Home() {
   const [typeFilter, setTypeFilter] = useState<"all" | "note" | "task">("all");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<Id<"tasks">>>(new Set());
-  const [viewMode, setViewMode] = useState<"table" | "timeline">("table");
+  const [viewMode, setViewMode] = useState<"table" | "timeline" | "kanban">("table");
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [createDefaultType, setCreateDefaultType] = useState<"note" | "task">("note");
 
   const uniqueTags = useMemo(() => {
     if (!sidebarNotes) return [];
@@ -87,6 +90,27 @@ export default function Home() {
   const handleActivateClose = () => {
     setShowActivateModal(false);
     handleClear();
+  };
+
+  // ⌘K keyboard shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setShowCommandPalette((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  const handleCreateNoteFromPalette = () => {
+    setCreateDefaultType("note");
+    setShowCreate(true);
+  };
+  const handleCreateTaskFromPalette = () => {
+    setCreateDefaultType("task");
+    setShowCreate(true);
   };
 
   return (
@@ -187,7 +211,12 @@ export default function Home() {
             {search ? (
               <button onClick={() => setSearch("")} className="text-muted hover:text-text text-lg leading-none transition-colors">×</button>
             ) : (
-              <kbd className="hidden md:inline-flex text-[10px] text-muted border border-border rounded px-1.5 py-0.5 font-mono leading-none">⌘K</kbd>
+              <button
+                onClick={() => setShowCommandPalette(true)}
+                className="hidden md:inline-flex text-[10px] text-muted border border-border rounded px-1.5 py-0.5 font-mono leading-none hover:text-text hover:border-slate-500 transition-colors"
+              >
+                ⌘K
+              </button>
             )}
           </div>
 
@@ -280,6 +309,17 @@ export default function Home() {
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.25 6.75h12M8.25 12h12M8.25 17.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
             </button>
+            {/* Kanban view */}
+            <button
+              onClick={() => setViewMode("kanban")}
+              title="Vista kanban"
+              className={cn(
+                "p-1.5 rounded transition-colors",
+                viewMode === "kanban" ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text"
+              )}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 4.5v15m6-15v15m-10.875 0c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125h-.375c-.621 0-1.125.504-1.125 1.125v12.75c0 .621.504 1.125 1.125 1.125h.375Zm5.625 0c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125h-.375c-.621 0-1.125.504-1.125 1.125v12.75c0 .621.504 1.125 1.125 1.125h.375Zm5.625 0c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125h-.375c-.621 0-1.125.504-1.125 1.125v12.75c0 .621.504 1.125 1.125 1.125h.375Z" /></svg>
+            </button>
           </div>
         </div>
 
@@ -299,8 +339,17 @@ export default function Home() {
                 onSelectTask={handleSelectTask}
               />
             </div>
-          ) : (
+          ) : viewMode === "timeline" ? (
             <TimelineView
+              onEdit={setEditNote}
+              onEditTask={setEditTask}
+              search={search}
+              typeFilter={typeFilter}
+              tagFilter={tagFilter}
+              globalTagColors={globalTagColors}
+            />
+          ) : (
+            <KanbanView
               onEdit={setEditNote}
               onEditTask={setEditTask}
               search={search}
@@ -328,7 +377,7 @@ export default function Home() {
 
       {/* ── Create modal ─────────────────────────────────────────────────── */}
       <AnimatePresence>
-        {showCreate && <CreateModal onClose={() => setShowCreate(false)} />}
+        {showCreate && <CreateModal onClose={() => setShowCreate(false)} defaultType={createDefaultType} />}
       </AnimatePresence>
 
       {/* ── ACTIVATE bar ─────────────────────────────────────────────────── */}
@@ -360,7 +409,22 @@ export default function Home() {
         />
       )}
 
-      {/* ── Consent banner ───────────────────────────────────────────────── */}
+      {/* ── Command Palette ─────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {showCommandPalette && (
+          <CommandPalette
+            onClose={() => setShowCommandPalette(false)}
+            onEditNote={setEditNote}
+            onEditTask={setEditTask}
+            onCreateNote={handleCreateNoteFromPalette}
+            onCreateTask={handleCreateTaskFromPalette}
+            onSwitchView={setViewMode}
+            onOpenTags={() => { setShowCommandPalette(false); setShowTagsPanel(true); }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Consent banner ─────────────────────────────────────────────────────── */}
       <ConsentBanner />
 
     </div>
