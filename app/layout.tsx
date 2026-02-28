@@ -1,0 +1,20 @@
+import type { Metadata } from "next";
+import { GeistSans } from "geist/font/sans";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "QUID — Potential noted. Action defined.",
+  description: "A minimal app for managing thoughts and actions.",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="it" className={GeistSans.className}>
+      <body className="bg-bg text-text antialiased">{children}</body>
+    </html>
+  );
+}
