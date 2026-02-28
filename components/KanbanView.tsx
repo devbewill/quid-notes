@@ -12,8 +12,8 @@ type AnyItem = (NoteDoc & { _kind: "note" }) | (TaskDoc & { _kind: "task" });
 
 const COLUMNS: { key: string; label: string; color: string }[] = [
   { key: "idle", label: "To Do", color: "border-zinc-500/40" },
-  { key: "active", label: "In corso", color: "border-sky-500/40" },
-  { key: "completed", label: "Completato", color: "border-emerald-500/40" },
+  { key: "active", label: "In Progress", color: "border-sky-500/40" },
+  { key: "completed", label: "Completed", color: "border-emerald-500/40" },
 ];
 
 function stripMd(text: string): string {
@@ -60,6 +60,11 @@ function KanbanCard({
     >
       {/* Type pill */}
       <div className="flex items-center gap-2 mb-2">
+        {item.isPinned && (
+          <svg className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" viewBox="0 0 20 20">
+            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+          </svg>
+        )}
         <span className={cn(
           "text-[9px] font-bold tracking-widest uppercase",
           item._kind === "note" ? "text-slate-400/70" : "text-violet-400/70"
@@ -68,7 +73,7 @@ function KanbanCard({
         </span>
         {overdue && (
           <span className="text-[9px] font-bold tracking-wide uppercase text-rose-400 bg-rose-500/15 px-1.5 py-0.5 rounded ring-1 ring-rose-400/25 animate-pulse">
-            Scaduto
+            Overdue
           </span>
         )}
       </div>
@@ -108,7 +113,7 @@ function KanbanCard({
             overdue ? "text-rose-400" : "text-muted"
           )}>
             <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-            {new Date(item.dueDate).toLocaleDateString("it-IT", { day: "2-digit", month: "short" })}
+            {new Date(item.dueDate).toLocaleDateString("en-US", { day: "2-digit", month: "short" })}
           </span>
         )}
       </div>
@@ -195,11 +200,12 @@ interface KanbanViewProps {
   search: string;
   typeFilter: "all" | "note" | "task";
   tagFilter: string | null;
+  statusFilter: "all" | "idle" | "active" | "completed";
   globalTagColors: Record<string, string>;
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-export function KanbanView({ onEdit, onEditTask, search, typeFilter, tagFilter, globalTagColors }: KanbanViewProps) {
+export function KanbanView({ onEdit, onEditTask, search, typeFilter, tagFilter, statusFilter, globalTagColors }: KanbanViewProps) {
   const topNotes = useQuery(api.notes.listTopLevel);
   const tasks = useQuery(api.tasks.listAll);
   const updateNote = useMutation(api.notes.update);
@@ -222,6 +228,7 @@ export function KanbanView({ onEdit, onEditTask, search, typeFilter, tagFilter, 
         );
       }
       if (tagFilter) result = result.filter((i) => i.tags?.includes(tagFilter));
+      if (statusFilter !== "all") result = result.filter((i) => i.status === statusFilter);
       return result;
     };
 
@@ -232,13 +239,17 @@ export function KanbanView({ onEdit, onEditTask, search, typeFilter, tagFilter, 
       ? filterItem(tasks as TaskDoc[]).map((t) => ({ ...t, _kind: "task" as const }))
       : [];
 
-    const all = [...noteItems, ...taskItems].sort((a, b) => b.updatedAt - a.updatedAt);
+    const all = [...noteItems, ...taskItems].sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return b.updatedAt - a.updatedAt;
+    });
 
     return COLUMNS.map((col) => ({
       ...col,
       items: all.filter((item) => item.status === col.key),
     }));
-  }, [topNotes, tasks, search, typeFilter, tagFilter]);
+  }, [topNotes, tasks, search, typeFilter, tagFilter, statusFilter]);
 
   const handleUpdateStatus = (droppedData: { _id: string; _kind: string }, newStatus: "idle" | "active" | "completed") => {
     if (droppedData._kind === "note") {

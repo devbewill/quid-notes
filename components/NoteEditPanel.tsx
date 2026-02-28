@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import type { NoteDoc } from "@/lib/types";
 import { MarkdownEditor } from "@/components/MarkdownEditor";
+import { cn } from "@/lib/cn";
 
 interface Props {
   note: NoteDoc;
@@ -24,6 +25,7 @@ function dateToTs(val: string): number | undefined {
 export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
   const update = useMutation(api.notes.update);
   const remove = useMutation(api.notes.remove);
+  const togglePin = useMutation(api.notes.togglePin);
 
   const [title, setTitle] = useState(note.title);
   const [text, setText] = useState(note.text);
@@ -132,19 +134,31 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onBlur={() => commit()}
-              placeholder="Titolo nota…"
+              placeholder="Note title…"
               className="w-full text-lg font-semibold bg-transparent outline-none text-text placeholder:text-muted border-none"
             />
+            <h4 className="text-[10px] uppercase tracking-wider font-bold text-muted mb-4 px-1">Details</h4>
             <p className="text-[10px] text-muted mt-0.5 tabular-nums">
-              Modificato {new Date(note.updatedAt).toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" })}
+              Modified {new Date(note.updatedAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}
             </p>
           </div>
-          <button
-            onClick={handleClose}
-            className="text-muted hover:text-text text-2xl leading-none transition-colors shrink-0 mt-0.5"
-          >
-            ×
-          </button>
+          <div className="flex items-center gap-1 shrink-0 mt-0.5">
+            <button
+              onClick={() => togglePin({ noteId: note._id })}
+              className={cn("p-1.5 rounded-md transition-colors", note.isPinned ? "text-amber-500 bg-amber-500/10 hover:bg-amber-500/20" : "text-muted hover:text-text hover:bg-surface/60")}
+              title={note.isPinned ? "Remove from pinned" : "Pin to top"}
+            >
+              <svg className={cn("w-4 h-4", note.isPinned && "fill-amber-500")} viewBox="0 0 20 20" stroke="currentColor" fill="none">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={note.isPinned ? 0 : 1.5} d={note.isPinned ? "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" : "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"} />
+              </svg>
+            </button>
+            <button
+              onClick={handleClose}
+              className="p-1 text-muted hover:text-text text-2xl leading-none transition-colors"
+            >
+              ×
+            </button>
+          </div>
         </div>
 
         {/* Body — two columns */}
@@ -155,7 +169,7 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
             <div className="flex flex-col gap-1.5">
               <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                Stato
+                Status
               </label>
               <select
                 value={status}
@@ -176,7 +190,7 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
             <div className="flex flex-col gap-1.5">
               <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-                Inizio
+                Start Date
               </label>
               <input
                 type="date"
@@ -191,7 +205,7 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
             <div className="flex flex-col gap-1.5">
               <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                Scadenza
+                Due Date
               </label>
               <input
                 type="date"
@@ -206,7 +220,7 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
             <div className="flex flex-col gap-2">
               <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" /></svg>
-                Tag
+                Tags
               </label>
               <div className="flex flex-wrap gap-1.5">
                 {tags.map((tag) => {
@@ -233,7 +247,7 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
                       value={tagColor}
                       onChange={(e) => setTagColor(e.target.value)}
                       className="w-6 h-6 rounded cursor-pointer bg-transparent border-0 outline-none p-0 shrink-0"
-                      title="Scegli colore (solo per nuovi tag)"
+                      title="Choose color (for new tags only)"
                     />
                   )}
                   <input
@@ -245,7 +259,7 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
                       if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(); }
                       if (e.key === "Escape") setShowSuggestions(false);
                     }}
-                    placeholder="Aggiungi tag..."
+                    placeholder="Add tag..."
                     className="flex-1 bg-bg border border-border rounded-lg px-2 py-1.5 text-xs text-text outline-none focus:border-accent transition-colors placeholder:text-muted"
                   />
                 </div>
@@ -283,7 +297,7 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
                 onClick={handleDelete}
                 className="text-xs text-rose-400 hover:text-rose-300 transition-colors"
               >
-                Elimina nota
+                Delete note
               </button>
             </div>
           </div>

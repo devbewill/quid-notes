@@ -19,6 +19,7 @@ export const createDirect = mutation({
       text: args.text,
       status: "idle",
       linkedNoteIds: [],
+      isPinned: false,
       startDate: args.startDate ?? now,
       dueDate: args.dueDate,
       createdAt: now,
@@ -35,6 +36,7 @@ export const listAll = query({
     return ctx.db
       .query("tasks")
       .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
+      .filter((q: any) => q.eq(q.field("deletedAt"), undefined))
       .order("desc")
       .collect();
   },
@@ -69,8 +71,9 @@ export const createFromNotes = mutation({
       ownerId: user._id,
       title: args.title,
       text: args.text,
-      status: "active",
+      status: "idle",
       linkedNoteIds: args.linkedNoteIds,
+      isPinned: false,
       startDate: args.startDate ?? now,
       dueDate: args.dueDate,
       createdAt: now,
@@ -121,11 +124,13 @@ export const update = mutation({
       v.union(
         v.literal("idle"),
         v.literal("active"),
-        v.literal("completed")
+        v.literal("completed"),
       )
     ),
     startDate: v.optional(v.number()),
     dueDate: v.optional(v.number()),
+    isPinned: v.optional(v.boolean()),
+    deletedAt: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const user = await requireAuth(ctx);
@@ -134,5 +139,78 @@ export const update = mutation({
 
     const { taskId, ...fields } = args;
     await ctx.db.patch(taskId, { ...fields, updatedAt: Date.now() });
+  },
+});
+
+/** Toggle task pinned state. */
+export const togglePin = mutation({
+  args: { taskId: v.id("tasks") },
+  handler: async (ctx, args) => {
+    const user = await requireAuth(ctx);
+    const task = await ctx.db.get(args.taskId);
+    if (!task || task.ownerId !== user._id) throw new Error("FORBIDDEN");
+    await ctx.db.patch(args.taskId, {
+      isPinned: !task.isPinned,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/** Soft delete a task (move to trash). */
+export const bin = mutation({
+  args: { taskId: v.id("tasks") },
+  handler: async (ctx, args) => {
+    const user = await requireAuth(ctx);
+    const task = await ctx.db.get(args.taskId);
+    if (!task || task.ownerId !== user._id) throw new Error("FORBIDDEN");
+    // Soft delete the task
+    await ctx.db.patch(args.taskId, {
+      deletedAt: Date.now(),
+      updatedAt: Date.now(),
+      isPinned: false,
+    });
+    // Also soft delete linked notes
+    for (const noteId of task.linkedNoteIds) {
+      await ctx.db.patch(noteId, {
+        deletedAt: Date.now(),
+        updatedAt: Date.now(),
+        isPinned: false,
+      });
+    }
+  },
+});
+
+/** Restore a task from trash. */
+export const restore = mutation({
+  args: { taskId: v.id("tasks") },
+  handler: async (ctx, args) => {
+    const user = await requireAuth(ctx);
+    const task = await ctx.db.get(args.taskId);
+    if (!task || task.ownerId !== user._id) throw new Error("FORBIDDEN");
+    await ctx.db.patch(args.taskId, {
+      deletedAt: undefined,
+      updatedAt: Date.now(),
+    });
+    // Restore linked notes
+    for (const noteId of task.linkedNoteIds) {
+      await ctx.db.patch(noteId, {
+        deletedAt: undefined,
+        updatedAt: Date.now(),
+      });
+    }
+  },
+});
+
+/** Query to list deleted tasks. */
+export const listTrashed = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireAuth(ctx);
+    return ctx.db
+      .query("tasks")
+      .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
+      .filter((q: any) => q.neq(q.field("deletedAt"), undefined))
+      .order("desc")
+      .collect();
   },
 });

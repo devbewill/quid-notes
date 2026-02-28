@@ -43,6 +43,8 @@ export default defineSchema({
     dueDate: v.optional(v.number()), // Unix ms
     tags: v.optional(v.array(v.string())),
     tagColors: v.optional(v.array(v.object({ name: v.string(), color: v.string() }))),
+    isPinned: v.optional(v.boolean()),
+    deletedAt: v.optional(v.number()),
     // undefined = top-level note; set = child note linked to a task
     parentTaskId: v.optional(v.id("tasks")),
     createdAt: v.number(),
@@ -64,6 +66,8 @@ export default defineSchema({
     dueDate: v.optional(v.number()), // Unix ms
     linkedNoteIds: v.array(v.id("notes")), // source notes (can be empty)
     aiProposals: v.optional(v.array(v.string())),
+    isPinned: v.optional(v.boolean()),
+    deletedAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_owner", ["ownerId"]),

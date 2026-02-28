@@ -144,6 +144,7 @@ interface Props {
 
 export function MarkdownEditor({ value, onChange, onBlur }: Props) {
   const [mode, setMode] = useState<ViewMode>("edit");
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [linkUrl, setLinkUrl] = useState("https://");
   const [linkText, setLinkText] = useState("");
@@ -212,7 +213,10 @@ export function MarkdownEditor({ value, onChange, onBlur }: Props) {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className={cn(
+      "flex flex-col overflow-hidden bg-bg",
+      isFullscreen ? "fixed inset-0 z-[100] h-screen w-screen p-4 md:p-8 lg:px-24 xl:px-48" : "h-full"
+    )}>
       {/* ── Toolbar ── */}
       <div className="flex items-center gap-0.5 px-3 py-1.5 border-b border-border bg-bg/20 flex-wrap shrink-0">
         {/* Text */}
@@ -280,6 +284,14 @@ export function MarkdownEditor({ value, onChange, onBlur }: Props) {
             </button>
           ))}
         </div>
+        <Divider />
+        <TB title={isFullscreen ? "Esci da schermo intero" : "Schermo intero"} onClick={() => setIsFullscreen(!isFullscreen)} active={isFullscreen}>
+          {isFullscreen ? (
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25" /></svg>
+          ) : (
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg>
+          )}
+        </TB>
       </div>
 
       {/* ── Link dialog (inline bar) ── */}

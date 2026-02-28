@@ -12,6 +12,7 @@ import { cn } from "@/lib/cn";
 type AnyItem = (NoteDoc & { _kind: "note" }) | (TaskDoc & { _kind: "task" });
 
 // ─── Time bucketing ───────────────────────────────────────────────────────────
+const BUCKET_PINNED = "__pinned__";
 const BUCKET_TODAY = "__today__";
 const BUCKET_WEEK = "__week__";
 
@@ -28,15 +29,16 @@ function getBucketKey(ts: number): string {
 }
 
 function getBucketLabel(key: string): string {
-  if (key === BUCKET_TODAY) return "Oggi";
-  if (key === BUCKET_WEEK) return "Ultima settimana";
+  if (key === BUCKET_PINNED) return "Pinned";
+  if (key === BUCKET_TODAY) return "Today";
+  if (key === BUCKET_WEEK) return "Last week";
   const [year, month] = key.split("-");
   const d = new Date(parseInt(year), parseInt(month));
-  const label = d.toLocaleDateString("it-IT", { month: "long", year: "numeric" });
+  const label = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-const BUCKET_ORDER = [BUCKET_TODAY, BUCKET_WEEK];
+const BUCKET_ORDER = [BUCKET_PINNED, BUCKET_TODAY, BUCKET_WEEK];
 
 function sortBuckets(keys: string[]): string[] {
   const special = BUCKET_ORDER.filter((k) => keys.includes(k));
@@ -71,8 +73,8 @@ const STATUS_STYLES: Record<string, string> = {
 };
 const STATUS_LABELS: Record<string, string> = {
   idle: "To Do",
-  active: "In corso",
-  completed: "Completato",
+  active: "In Progress",
+  completed: "Completed",
 };
 
 function StatusPill({ status }: { status: string }) {
@@ -131,6 +133,11 @@ function NoteCard({
       <div className="pl-5 pr-5 py-4">
         {/* Header row */}
         <div className="flex items-center gap-2 mb-2.5">
+          {note.isPinned && (
+            <svg className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" viewBox="0 0 20 20">
+              <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+            </svg>
+          )}
           <span className="text-[10px] font-bold tracking-widest uppercase text-slate-400/70">nota</span>
           <StatusPill status={note.status} />
           {overdue && (
@@ -139,7 +146,7 @@ function NoteCard({
             </span>
           )}
           <span className="ml-auto text-[10px] text-muted tabular-nums shrink-0">
-            {new Date(note.updatedAt).toLocaleDateString("it-IT", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+            {new Date(note.updatedAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
           </span>
         </div>
 
@@ -162,7 +169,7 @@ function NoteCard({
               overdue ? "text-rose-400 font-medium" : "text-muted"
             )}>
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-              {new Date(note.dueDate).toLocaleDateString("it-IT", { day: "2-digit", month: "short" })}
+              {new Date(note.dueDate).toLocaleDateString("en-US", { day: "2-digit", month: "short" })}
             </span>
           )}
         </div>
@@ -200,6 +207,11 @@ function TaskCard({
       <div className="pl-5 pr-5 py-4">
         {/* Header row */}
         <div className="flex items-center gap-2 mb-2.5">
+          {task.isPinned && (
+            <svg className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" viewBox="0 0 20 20">
+              <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+            </svg>
+          )}
           <span className="text-[10px] font-bold tracking-widest uppercase text-violet-400/70">task</span>
           <StatusPill status={task.status} />
           {overdue && (
@@ -214,7 +226,7 @@ function TaskCard({
             </span>
           )}
           <span className="ml-auto text-[10px] text-muted tabular-nums shrink-0">
-            {new Date(task.updatedAt).toLocaleDateString("it-IT", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+            {new Date(task.updatedAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
           </span>
         </div>
 
@@ -233,7 +245,7 @@ function TaskCard({
           {task.startDate && (
             <span className="text-[10px] text-muted flex items-center gap-1">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5" /></svg>
-              {new Date(task.startDate).toLocaleDateString("it-IT", { day: "2-digit", month: "short" })}
+              {new Date(task.startDate).toLocaleDateString("en-US", { day: "2-digit", month: "short" })}
             </span>
           )}
           {task.dueDate && (
@@ -242,7 +254,7 @@ function TaskCard({
               overdue ? "text-rose-400 font-medium" : "text-muted"
             )}>
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-              {new Date(task.dueDate).toLocaleDateString("it-IT", { day: "2-digit", month: "short" })}
+              {new Date(task.dueDate).toLocaleDateString("en-US", { day: "2-digit", month: "short" })}
             </span>
           )}
         </div>
@@ -269,11 +281,12 @@ interface TimelineViewProps {
   search: string;
   typeFilter: "all" | "note" | "task";
   tagFilter: string | null;
+  statusFilter: "all" | "idle" | "active" | "completed";
   globalTagColors: Record<string, string>;
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export function TimelineView({ onEdit, onEditTask, search, typeFilter, tagFilter, globalTagColors }: TimelineViewProps) {
+export function TimelineView({ onEdit, onEditTask, search, typeFilter, tagFilter, statusFilter, globalTagColors }: TimelineViewProps) {
   const topNotes = useQuery(api.notes.listTopLevel);
   const tasks = useQuery(api.tasks.listAll);
 
@@ -294,6 +307,7 @@ export function TimelineView({ onEdit, onEditTask, search, typeFilter, tagFilter
         );
       }
       if (tagFilter) result = result.filter((i) => i.tags?.includes(tagFilter));
+      if (statusFilter !== "all") result = result.filter((i) => i.status === statusFilter);
       return result;
     };
 
@@ -308,7 +322,7 @@ export function TimelineView({ onEdit, onEditTask, search, typeFilter, tagFilter
 
     const map = new Map<string, AnyItem[]>();
     for (const item of all) {
-      const key = getBucketKey(item.updatedAt);
+      const key = item.isPinned ? BUCKET_PINNED : getBucketKey(item.updatedAt);
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(item);
     }
@@ -318,7 +332,7 @@ export function TimelineView({ onEdit, onEditTask, search, typeFilter, tagFilter
       label: getBucketLabel(key),
       items: map.get(key)!,
     }));
-  }, [topNotes, tasks, search, typeFilter, tagFilter]);
+  }, [topNotes, tasks, search, typeFilter, tagFilter, statusFilter]);
 
   // Loading
   if (!buckets) {

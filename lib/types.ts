@@ -16,6 +16,8 @@ export interface NoteDoc {
   dueDate?: number;
   tags?: string[];
   tagColors?: Array<{ name: string; color: string }>;
+  isPinned?: boolean;
+  deletedAt?: number;
   parentTaskId?: Id<"tasks">;
   createdAt: number;
   updatedAt: number;
@@ -32,6 +34,8 @@ export interface TaskDoc {
   dueDate?: number;
   linkedNoteIds: Id<"notes">[];
   aiProposals?: string[];
+  isPinned?: boolean;
+  deletedAt?: number;
   createdAt: number;
   updatedAt: number;
 }

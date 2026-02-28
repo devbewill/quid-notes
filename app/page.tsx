@@ -21,6 +21,8 @@ import { TagsPanel } from "@/components/TagsPanel";
 import { TimelineView } from "@/components/TimelineView";
 import { CommandPalette } from "@/components/CommandPalette";
 import { KanbanView } from "@/components/KanbanView";
+import { TrashView } from "@/components/TrashView";
+import { AiAssistant } from "@/components/AiAssistant";
 
 export default function Home() {
   const router = useRouter();
@@ -39,8 +41,9 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "note" | "task">("all");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "idle" | "active" | "completed">("all");
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<Id<"tasks">>>(new Set());
-  const [viewMode, setViewMode] = useState<"table" | "timeline" | "kanban">("table");
+  const [viewMode, setViewMode] = useState<"table" | "timeline" | "kanban" | "trash">("table");
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [createDefaultType, setCreateDefaultType] = useState<"note" | "task">("note");
 
@@ -85,7 +88,28 @@ export default function Home() {
     });
   };
 
-  const handleClear = () => setSelectedNoteIds(new Set());
+  const handleClear = () => {
+    setSelectedNoteIds(new Set());
+    setSelectedTaskIds(new Set());
+  };
+
+  const trashNote = useMutation(api.notes.bin);
+  const trashTask = useMutation(api.tasks.bin);
+  const updateNote = useMutation(api.notes.update);
+  const updateTask = useMutation(api.tasks.update);
+
+  const handleBulkTrash = async () => {
+    if (!confirm("Spostare gli elementi selezionati nel cestino?")) return;
+    for (const id of selectedNoteIds) await trashNote({ noteId: id });
+    for (const id of selectedTaskIds) await trashTask({ taskId: id });
+    handleClear();
+  };
+
+  const handleBulkStatusChange = async (status: "idle" | "active" | "completed") => {
+    for (const id of selectedNoteIds) await updateNote({ noteId: id, status });
+    for (const id of selectedTaskIds) await updateTask({ taskId: id, status });
+    handleClear();
+  };
 
   const handleActivateClose = () => {
     setShowActivateModal(false);
@@ -142,10 +166,13 @@ export default function Home() {
 
         {/* Nav */}
         <nav className="flex-1 pt-3 px-2">
-          <p className="text-[9px] text-muted uppercase tracking-widest px-2 mb-2 font-medium">Viste</p>
+          <p className="text-[9px] text-muted uppercase tracking-widest px-2 mb-2 font-medium">Views</p>
           <ul className="flex flex-col gap-0.5">
             <li>
-              <button className="w-full text-left flex items-center gap-2.5 text-sm px-3 py-2 rounded-lg text-text bg-bg/40 font-medium">
+              <button
+                onClick={() => { setTypeFilter("all"); setStatusFilter("all"); setViewMode("table"); }}
+                className={cn("w-full text-left flex items-center gap-2.5 text-sm px-3 py-2 rounded-lg transition-colors", typeFilter === "all" && statusFilter === "all" && viewMode !== "trash" ? "text-text bg-bg/40 font-medium" : "text-muted hover:text-text")}
+              >
                 <svg className="w-4 h-4 text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z" /></svg>
                 Inbox
                 {sidebarNotes !== undefined && (
@@ -154,7 +181,10 @@ export default function Home() {
               </button>
             </li>
             <li>
-              <button className="w-full text-left flex items-center gap-2.5 text-sm px-3 py-2 rounded-lg text-muted hover:text-text transition-colors">
+              <button
+                onClick={() => { setTypeFilter("task"); setStatusFilter("active"); setViewMode("table"); }}
+                className={cn("w-full text-left flex items-center gap-2.5 text-sm px-3 py-2 rounded-lg transition-colors", typeFilter === "task" && statusFilter === "active" && viewMode !== "trash" ? "text-text bg-bg/40 font-medium" : "text-muted hover:text-text")}
+              >
                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" /></svg>
                 Active Tasks
                 {sidebarTasks !== undefined && (
@@ -163,9 +193,12 @@ export default function Home() {
               </button>
             </li>
             <li>
-              <button className="w-full text-left flex items-center gap-2.5 text-sm px-3 py-2 rounded-lg text-muted hover:text-text transition-colors">
+              <button
+                onClick={() => { setTypeFilter("all"); setStatusFilter("completed"); setViewMode("table"); }}
+                className={cn("w-full text-left flex items-center gap-2.5 text-sm px-3 py-2 rounded-lg transition-colors", typeFilter === "all" && statusFilter === "completed" && viewMode !== "trash" ? "text-text bg-bg/40 font-medium" : "text-muted hover:text-text")}
+              >
                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                Completati
+                Completed
                 {sidebarTasks !== undefined && (
                   <span className="ml-auto text-[10px] text-muted tabular-nums">{sidebarTasks.filter((t) => t.status === "completed").length}</span>
                 )}
@@ -183,6 +216,19 @@ export default function Home() {
                 )}
               </button>
             </li>
+            <li>
+              <button
+                onClick={() => setViewMode("trash")}
+                className={cn(
+                  "w-full text-left flex items-center gap-2.5 text-sm px-3 py-2 rounded-lg transition-colors",
+                  viewMode === "trash" ? "text-text bg-bg/40 font-medium" : "text-muted hover:text-text"
+                )}
+              >
+                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                Trash
+              </button>
+            </li>
+            <AiAssistant />
           </ul>
 
         </nav>
@@ -205,7 +251,7 @@ export default function Home() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cerca note, task, tag…"
+              placeholder="Search notes, tasks, tags…"
               className="flex-1 bg-transparent text-sm text-text placeholder:text-muted outline-none"
             />
             {search ? (
@@ -231,8 +277,9 @@ export default function Home() {
         </div>
 
         {/* Filter bar */}
-        <div className="flex items-center gap-2 px-4 py-2 border-b border-border shrink-0 flex-wrap min-h-[40px]">
-          {/* Type toggle */}
+        {viewMode !== "trash" && (
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-border shrink-0 flex-wrap min-h-[40px]">
+            {/* Type toggle */}
           <div className="flex gap-0.5 bg-bg rounded-lg p-0.5">
             {(["all", "note", "task"] as const).map((t) => (
               <button
@@ -276,12 +323,12 @@ export default function Home() {
             })}
           </div>
 
-          {(typeFilter !== "all" || tagFilter !== null) && (
+          {(typeFilter !== "all" || tagFilter !== null || statusFilter !== "all") && (
             <button
-              onClick={() => { setTypeFilter("all"); setTagFilter(null); }}
+              onClick={() => { setTypeFilter("all"); setTagFilter(null); setStatusFilter("all"); }}
               className="text-xs text-muted hover:text-text transition-colors flex items-center gap-1"
             >
-              <span>×</span> Rimuovi filtri
+              <span>×</span> Remove filters
             </button>
           )}
 
@@ -290,7 +337,7 @@ export default function Home() {
             {/* Table view */}
             <button
               onClick={() => setViewMode("table")}
-              title="Vista tabella"
+              title="Table view"
               className={cn(
                 "p-1.5 rounded transition-colors",
                 viewMode === "table" ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text"
@@ -301,7 +348,7 @@ export default function Home() {
             {/* Timeline view */}
             <button
               onClick={() => setViewMode("timeline")}
-              title="Vista timeline"
+              title="Timeline view"
               className={cn(
                 "p-1.5 rounded transition-colors",
                 viewMode === "timeline" ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text"
@@ -312,7 +359,7 @@ export default function Home() {
             {/* Kanban view */}
             <button
               onClick={() => setViewMode("kanban")}
-              title="Vista kanban"
+              title="Kanban view"
               className={cn(
                 "p-1.5 rounded transition-colors",
                 viewMode === "kanban" ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text"
@@ -322,10 +369,13 @@ export default function Home() {
             </button>
           </div>
         </div>
+        )}
 
         {/* Content area */}
         <div className="flex-1 overflow-y-auto">
-          {viewMode === "table" ? (
+          {viewMode === "trash" ? (
+            <TrashView />
+          ) : viewMode === "table" ? (
             <div className="px-4 py-4">
               <Feed
                 selectedNoteIds={selectedNoteIds}
@@ -335,6 +385,7 @@ export default function Home() {
                 search={search}
                 typeFilter={typeFilter}
                 tagFilter={tagFilter}
+                statusFilter={statusFilter}
                 selectedTaskIds={selectedTaskIds}
                 onSelectTask={handleSelectTask}
               />
@@ -346,6 +397,7 @@ export default function Home() {
               search={search}
               typeFilter={typeFilter}
               tagFilter={tagFilter}
+              statusFilter={statusFilter}
               globalTagColors={globalTagColors}
             />
           ) : (
@@ -355,6 +407,7 @@ export default function Home() {
               search={search}
               typeFilter={typeFilter}
               tagFilter={tagFilter}
+              statusFilter={statusFilter}
               globalTagColors={globalTagColors}
             />
           )}
@@ -382,11 +435,14 @@ export default function Home() {
 
       {/* ── ACTIVATE bar ─────────────────────────────────────────────────── */}
       <AnimatePresence>
-        {selectedNoteIds.size > 0 && (
+        {(selectedNoteIds.size > 0 || selectedTaskIds.size > 0) && (
           <ActivateBar
-            count={selectedNoteIds.size}
+            noteCount={selectedNoteIds.size}
+            taskCount={selectedTaskIds.size}
             onClear={handleClear}
             onActivate={() => setShowActivateModal(true)}
+            onTrash={handleBulkTrash}
+            onStatusChange={handleBulkStatusChange}
           />
         )}
       </AnimatePresence>

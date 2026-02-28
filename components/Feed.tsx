@@ -17,6 +17,7 @@ interface FeedProps {
   search: string;
   typeFilter: "all" | "note" | "task";
   tagFilter: string | null;
+  statusFilter: "all" | "idle" | "active" | "completed";
   selectedTaskIds: Set<Id<"tasks">>;
   onSelectTask: (id: Id<"tasks">) => void;
 }
@@ -62,7 +63,7 @@ function DateCell({ ts, overdue }: { ts?: number; overdue?: boolean }) {
   return (
     <span className={cn("text-xs tabular-nums flex items-center gap-1", overdue ? "text-rose-400 font-medium" : "text-muted")}>
       {overdue && <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse shrink-0" />}
-      {new Date(ts).toLocaleDateString("it-IT", { day: "2-digit", month: "short" })}
+      {new Date(ts).toLocaleDateString("en-US", { day: "2-digit", month: "short" })}
     </span>
   );
 }
@@ -229,10 +230,15 @@ function NoteRow({
         )}
       </td>
       <td
-        className={cn("py-3 pr-4 text-sm cursor-pointer hover:text-accent transition-colors", isChild && "pl-8")}
+        className={cn("py-3 pr-4 text-sm cursor-pointer hover:text-accent transition-colors flex items-center gap-1.5", isChild && "pl-8")}
         onClick={() => onEdit(note)}
       >
-        {note.title}
+        {note.isPinned && (
+          <svg className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" viewBox="0 0 20 20">
+            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+          </svg>
+        )}
+        <span className="truncate">{note.title}</span>
       </td>
       <td className="pr-4"><TypeBadge type="NOTE" /></td>
       <td className="pr-4"><StatusBadge status={note.status} /></td>
@@ -286,10 +292,15 @@ function TaskRow({ task, onEdit, onEditTask, selected, onSelectTask }: {
           </div>
         </td>
         <td
-          className="py-3 pr-4 text-sm font-medium cursor-pointer hover:text-accent transition-colors"
+          className="py-3 pr-4 text-sm font-medium cursor-pointer hover:text-accent transition-colors flex items-center gap-1.5"
           onClick={(e) => { e.stopPropagation(); onEditTask(task); }}
         >
-          {task.title}
+          {task.isPinned && (
+            <svg className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" viewBox="0 0 20 20">
+              <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+            </svg>
+          )}
+          <span className="truncate">{task.title}</span>
         </td>
         <td className="pr-4"><TypeBadge type="TASK" /></td>
         <td className="pr-4"><StatusBadge status={task.status} /></td>
@@ -305,7 +316,7 @@ function TaskRow({ task, onEdit, onEditTask, selected, onSelectTask }: {
 }
 
 // ─── Feed ─────────────────────────────────────────────────────────────────────
-export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search, typeFilter, tagFilter, selectedTaskIds, onSelectTask }: FeedProps) {
+export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search, typeFilter, tagFilter, statusFilter, selectedTaskIds, onSelectTask }: FeedProps) {
   const { t } = useLocale();
   const topNotes = useQuery(api.notes.listTopLevel);
   const tasks = useQuery(api.tasks.listAll);
@@ -344,14 +355,21 @@ export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search, ty
       if (tagFilter) {
         result = result.filter((i) => i.tags?.includes(tagFilter));
       }
+      if (statusFilter !== "all") {
+        result = result.filter((i) => i.status === statusFilter);
+      }
       return result;
     };
 
-    const applySort = <T extends { title: string; status: string; startDate?: number; dueDate?: number; tags?: string[] }>(
+    const applySort = <T extends { title: string; status: string; startDate?: number; dueDate?: number; tags?: string[]; isPinned?: boolean }>(
       items: T[]
     ): T[] => {
-      if (!sort) return items;
       return [...items].sort((a, b) => {
+        // Pinned to the top
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+
+        if (!sort) return 0;
         let cmp = 0;
         switch (sort.col) {
           case "title":     cmp = a.title.localeCompare(b.title); break;
@@ -368,7 +386,7 @@ export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search, ty
       sortedNotes: showNotes ? applySort(filtered(topNotes as NoteDoc[])) : [],
       sortedTasks: showTasks ? applySort(filtered(tasks as TaskDoc[])) : [],
     };
-  }, [topNotes, tasks, q, sort, typeFilter, tagFilter]);
+  }, [topNotes, tasks, q, sort, typeFilter, tagFilter, statusFilter]);
 
   if (!topNotes || !tasks) {
     return (

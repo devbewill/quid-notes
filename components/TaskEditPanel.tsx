@@ -5,6 +5,7 @@ import { useMutation, useQuery } from "convex/react";
 import { motion } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import type { TaskDoc } from "@/lib/types";
+import { cn } from "@/lib/cn";
 
 interface Props {
   task: TaskDoc;
@@ -22,6 +23,7 @@ function dateToTs(val: string): number | undefined {
 export function TaskEditPanel({ task, onClose }: Props) {
   const update = useMutation(api.tasks.update);
   const deleteTask = useMutation(api.tasks.deleteAndRestoreNotes);
+  const togglePin = useMutation(api.tasks.togglePin);
 
   const linkedNotes = useQuery(api.notes.listByTask, { taskId: task._id });
 
@@ -89,19 +91,31 @@ export function TaskEditPanel({ task, onClose }: Props) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onBlur={() => commit()}
-              placeholder="Titolo task…"
+              placeholder="Add tag..."
               className="w-full text-lg font-semibold bg-transparent outline-none text-text placeholder:text-muted border-none"
             />
+            <h4 className="text-[10px] uppercase tracking-wider font-bold text-muted mb-4 px-1">Details</h4>
             <p className="text-[10px] text-muted mt-0.5 tabular-nums">
-              Modificato {new Date(task.updatedAt).toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" })}
+              Modified {new Date(task.updatedAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}
             </p>
           </div>
-          <button
-            onClick={handleClose}
-            className="text-muted hover:text-text text-2xl leading-none transition-colors shrink-0 mt-0.5"
-          >
-            ×
-          </button>
+          <div className="flex items-center gap-1 shrink-0 mt-0.5">
+            <button
+              onClick={() => togglePin({ taskId: task._id })}
+              className={cn("p-1.5 rounded-md transition-colors", task.isPinned ? "text-amber-500 bg-amber-500/10 hover:bg-amber-500/20" : "text-muted hover:text-text hover:bg-surface/60")}
+              title={task.isPinned ? "Remove from pinned" : "Pin to top"}
+            >
+              <svg className={cn("w-4 h-4", task.isPinned && "fill-amber-500")} viewBox="0 0 20 20" stroke="currentColor" fill="none">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={task.isPinned ? 0 : 1.5} d={task.isPinned ? "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" : "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"} />
+              </svg>
+            </button>
+            <button
+              onClick={handleClose}
+              className="p-1 text-muted hover:text-text text-2xl leading-none transition-colors"
+            >
+              ×
+            </button>
+          </div>
         </div>
 
         {/* Body — two columns */}
@@ -172,6 +186,7 @@ export function TaskEditPanel({ task, onClose }: Props) {
                       key={note._id}
                       className="text-xs px-2 py-1.5 rounded-lg bg-bg border border-border text-text"
                     >
+                      <span className="text-xs text-text font-medium min-w-[70px]">Start</span>
                       <p className="font-medium truncate">{note.title}</p>
                       <span
                         className={`mt-0.5 inline-block text-[10px] px-1.5 py-0.5 rounded-full ${
@@ -196,7 +211,7 @@ export function TaskEditPanel({ task, onClose }: Props) {
                 onClick={handleDelete}
                 className="text-xs text-rose-400 hover:text-rose-300 transition-colors"
               >
-                Elimina task
+                Delete task
               </button>
             </div>
           </div>
