@@ -1,7 +1,7 @@
 import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 /**
  * Server-side Gemini call — never exposes the API key to the client.
@@ -35,11 +35,13 @@ Return ONLY a JSON array of 3 strings. No explanation.
 Notes:
 ${notesContent}`;
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const ai = new GoogleGenAI({ apiKey });
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: prompt,
+    });
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
+    const text = (response.text ?? "").trim();
 
     // Strip markdown code fences if present
     const cleaned = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
@@ -48,9 +50,7 @@ ${notesContent}`;
     try {
       proposals = JSON.parse(cleaned);
     } catch {
-      throw new Error(
-        `Gemini returned invalid JSON: ${cleaned.slice(0, 200)}`
-      );
+      throw new Error(`Gemini returned invalid JSON: ${cleaned.slice(0, 200)}`);
     }
 
     if (
@@ -58,9 +58,7 @@ ${notesContent}`;
       proposals.length !== 3 ||
       !proposals.every((p) => typeof p === "string" && p.trim().length > 0)
     ) {
-      throw new Error(
-        "Gemini did not return exactly 3 non-empty string proposals"
-      );
+      throw new Error("Gemini did not return exactly 3 non-empty string proposals");
     }
 
     return proposals as string[];
