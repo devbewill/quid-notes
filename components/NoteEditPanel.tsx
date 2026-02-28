@@ -26,7 +26,7 @@ export function NoteEditPanel({ note, onClose }: Props) {
   const [title, setTitle] = useState(note.title);
   const [text, setText] = useState(note.text);
   const [status, setStatus] = useState(note.status);
-  const [startDate, setStartDate] = useState(tsToDate(note.startDate ?? note.createdAt));
+  const [startDate, setStartDate] = useState(tsToDate(note.startDate));
   const [dueDate, setDueDate] = useState(tsToDate(note.dueDate));
   const [tags, setTags] = useState<string[]>(note.tags ?? []);
   const [tagInput, setTagInput] = useState("");
@@ -35,7 +35,7 @@ export function NoteEditPanel({ note, onClose }: Props) {
     setTitle(note.title);
     setText(note.text);
     setStatus(note.status);
-    setStartDate(tsToDate(note.startDate ?? note.createdAt));
+    setStartDate(tsToDate(note.startDate));
     setDueDate(tsToDate(note.dueDate));
     setTags(note.tags ?? []);
     setTagInput("");

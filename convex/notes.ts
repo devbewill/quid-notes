@@ -50,7 +50,7 @@ export const create = mutation({
       title: args.title,
       text: args.text,
       status: "idle",
-      startDate: args.startDate,
+      startDate: args.startDate ?? now,
       dueDate: args.dueDate,
       tags: args.tags,
       createdAt: now,
