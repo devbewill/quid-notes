@@ -18,6 +18,7 @@ import { NoteEditPanel } from "@/components/NoteEditPanel";
 import { TaskEditPanel } from "@/components/TaskEditPanel";
 import { CreateModal } from "@/components/CreateModal";
 import { TagsPanel } from "@/components/TagsPanel";
+import { TimelineView } from "@/components/TimelineView";
 
 export default function Home() {
   const router = useRouter();
@@ -38,6 +39,7 @@ export default function Home() {
   const [typeFilter, setTypeFilter] = useState<"all" | "note" | "task">("all");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<Id<"tasks">>>(new Set());
+  const [viewMode, setViewMode] = useState<"table" | "timeline">("table");
 
   const uniqueTags = useMemo(() => {
     if (!sidebarNotes) return [];
@@ -158,15 +160,7 @@ export default function Home() {
               </button>
             </li>
           </ul>
-          {/* Seed demo button */}
-          <div className="px-3 pb-3">
-            <button
-              onClick={() => seedDemo().catch(console.error)}
-              className="w-full text-[10px] text-muted hover:text-text border border-border/50 hover:border-border rounded-lg px-3 py-1.5 transition-colors text-left"
-            >
-              🎲 Aggiungi dati demo
-            </button>
-          </div>
+
         </nav>
 
         {/* Account */}
@@ -256,26 +250,65 @@ export default function Home() {
           {(typeFilter !== "all" || tagFilter !== null) && (
             <button
               onClick={() => { setTypeFilter("all"); setTagFilter(null); }}
-              className="ml-auto text-xs text-muted hover:text-text transition-colors flex items-center gap-1"
+              className="text-xs text-muted hover:text-text transition-colors flex items-center gap-1"
             >
               <span>×</span> Rimuovi filtri
             </button>
           )}
+
+          {/* View toggle */}
+          <div className={cn("flex gap-0.5 bg-bg rounded-lg p-0.5 shrink-0", typeFilter !== "all" || tagFilter !== null ? "" : "ml-auto")}>
+            {/* Table view */}
+            <button
+              onClick={() => setViewMode("table")}
+              title="Vista tabella"
+              className={cn(
+                "p-1.5 rounded transition-colors",
+                viewMode === "table" ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text"
+              )}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125" /></svg>
+            </button>
+            {/* Timeline view */}
+            <button
+              onClick={() => setViewMode("timeline")}
+              title="Vista timeline"
+              className={cn(
+                "p-1.5 rounded transition-colors",
+                viewMode === "timeline" ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text"
+              )}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.25 6.75h12M8.25 12h12M8.25 17.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
+            </button>
+          </div>
         </div>
 
-        {/* Feed */}
-        <div className="flex-1 overflow-y-auto px-4 py-4">
-          <Feed
-            selectedNoteIds={selectedNoteIds}
-            onSelect={handleSelect}
-            onEdit={setEditNote}
-            onEditTask={setEditTask}
-            search={search}
-            typeFilter={typeFilter}
-            tagFilter={tagFilter}
-            selectedTaskIds={selectedTaskIds}
-            onSelectTask={handleSelectTask}
-          />
+        {/* Content area */}
+        <div className="flex-1 overflow-y-auto">
+          {viewMode === "table" ? (
+            <div className="px-4 py-4">
+              <Feed
+                selectedNoteIds={selectedNoteIds}
+                onSelect={handleSelect}
+                onEdit={setEditNote}
+                onEditTask={setEditTask}
+                search={search}
+                typeFilter={typeFilter}
+                tagFilter={tagFilter}
+                selectedTaskIds={selectedTaskIds}
+                onSelectTask={handleSelectTask}
+              />
+            </div>
+          ) : (
+            <TimelineView
+              onEdit={setEditNote}
+              onEditTask={setEditTask}
+              search={search}
+              typeFilter={typeFilter}
+              tagFilter={tagFilter}
+              globalTagColors={globalTagColors}
+            />
+          )}
         </div>
       </main>
 
