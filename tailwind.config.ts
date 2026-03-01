@@ -9,12 +9,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: "#0B0B0B",
-        surface: "#161616",
-        border: "#262626",
-        text: "#E8E8E8",
-        muted: "#666666",
-        accent: "#FFFFFF",
+        bg: "var(--bg)",
+        surface: "var(--surface)",
+        border: "var(--border)",
+        text: "var(--text)",
+        muted: "var(--muted)",
+        accent: "var(--accent)",
+        brand: "var(--brand)",
+        "brand-text": "var(--brand-text)",
+        "brand-ring": "var(--brand-ring)",
       },
     },
   },

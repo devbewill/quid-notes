@@ -218,6 +218,12 @@ export default function SignInPage() {
         >
           Continua con Google
         </button>
+
+        <div className="mt-8 text-center">
+          <Link href="/landing" className="text-xs text-muted hover:text-text underline decoration-border underline-offset-4 transition-colors">
+            Scopri QUID Notes
+          </Link>
+        </div>
       </div>
     </div>
   );

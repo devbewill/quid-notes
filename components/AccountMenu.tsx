@@ -9,6 +9,8 @@ import { api } from "@/convex/_generated/api";
 import { useLocale } from "@/hooks/useLocale";
 import { ExportDataButton } from "./ExportDataButton";
 import { DeleteAccountModal } from "./DeleteAccountModal";
+import { ThemeToggle } from "./ThemeToggle";
+import { MarketingToggle } from "./MarketingToggle";
 
 function Section({
   label,
@@ -158,34 +160,19 @@ export function AccountMenu() {
                   </MenuItem>
                 )}
 
+                {/* Theme Toggle */}
+                <div className="flex items-center justify-between py-1">
+                  <ThemeToggle />
+                </div>
+
                 {/* Change password — email auth only */}
                 {user.authProvider === "email" && (
                   <MenuItem>{t("account_change_password")}</MenuItem>
                 )}
 
                 {/* Marketing toggle */}
-                <div className="flex items-center justify-between px-4 py-2">
-                  <span className="text-sm text-text">
-                    {t("account_marketing_label")}
-                  </span>
-                  <button
-                    role="switch"
-                    aria-checked={user.marketingConsent}
-                    onClick={() =>
-                      updateMarketing({
-                        marketingConsent: !user.marketingConsent,
-                      })
-                    }
-                    className={`relative w-9 h-5 rounded-full transition-colors ${
-                      user.marketingConsent ? "bg-accent" : "bg-border"
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-0.5 w-4 h-4 bg-bg rounded-full shadow transition-transform ${
-                        user.marketingConsent ? "translate-x-4" : "translate-x-0.5"
-                      }`}
-                    />
-                  </button>
+                <div className="flex items-center justify-between py-1">
+                  <MarketingToggle />
                 </div>
               </Section>
 

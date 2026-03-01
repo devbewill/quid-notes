@@ -280,7 +280,7 @@ export default function Home() {
           {/* Create button */}
           <button
             onClick={() => setShowCreate(true)}
-            className="shrink-0 flex items-center gap-1.5 bg-violet-500 hover:bg-violet-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm shadow-violet-500/30"
+            className="shrink-0 flex items-center gap-1.5 bg-brand hover:opacity-90 text-brand-text text-sm font-medium px-4 py-2 rounded-lg transition-all shadow-sm shadow-brand/30"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.5v15m7.5-7.5h-15" /></svg>
             New
@@ -297,11 +297,12 @@ export default function Home() {
                 key={t}
                 onClick={() => setTypeFilter(t)}
                 className={cn(
-                  "text-xs px-3 py-1 rounded-md font-medium transition-colors",
+                  "text-xs px-3 py-1 rounded-md font-medium transition-all duration-200",
+                  "light:hover:bg-black light:hover:text-white",
                   typeFilter === t ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text"
                 )}
               >
-                {t === "all" ? "Tutti" : t === "note" ? "Note" : "Task"}
+                {t === "all" ? "All" : t === "note" ? "Note" : "Task"}
               </button>
             ))}
           </div>
@@ -319,8 +320,8 @@ export default function Home() {
                   className={cn(
                     "text-xs px-1.5 py-0.5 rounded font-medium transition-all",
                     !c && (tagFilter === tag
-                      ? "bg-violet-500/40 text-violet-200 ring-1 ring-violet-400/60"
-                      : "bg-violet-500/20 text-violet-300 ring-1 ring-violet-400/25 hover:bg-violet-500/30")
+                      ? "bg-brand text-brand-text ring-1 ring-brand-ring"
+                      : "bg-brand/20 dark:text-brand light:bg-brand light:text-brand-text ring-1 ring-brand-ring hover:opacity-80")
                   )}
                   style={c ? {
                     background: tagFilter === tag ? `${c}50` : `${c}28`,

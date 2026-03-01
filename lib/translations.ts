@@ -11,10 +11,13 @@ export const translations = {
     account_edit_profile: "Modifica profilo",
     account_change_password: "Cambia password",
     account_marketing_label: "Email promozionali",
+    account_marketing_enabled: "Attive",
+    account_marketing_disabled: "Disattive",
     account_sign_out: "Esci",
     account_save: "Salva",
     account_cancel: "Annulla",
     account_name_placeholder: "Il tuo nome",
+    account_theme_label: "Tema",
 
     // Data & Privacy section
     privacy_section: "Dati e Privacy",
@@ -92,10 +95,13 @@ export const translations = {
     account_edit_profile: "Edit profile",
     account_change_password: "Change password",
     account_marketing_label: "Marketing emails",
+    account_marketing_enabled: "Enabled",
+    account_marketing_disabled: "Disabled",
     account_sign_out: "Sign out",
     account_save: "Save",
     account_cancel: "Cancel",
     account_name_placeholder: "Your name",
+    account_theme_label: "Appearance",
 
     // Data & Privacy section
     privacy_section: "Data & Privacy",

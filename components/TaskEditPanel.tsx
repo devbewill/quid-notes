@@ -86,7 +86,7 @@ export function TaskEditPanel({ task, onClose }: Props) {
       >
         {/* Header */}
         <div className="flex items-start gap-3 px-6 py-4 border-b border-border">
-          <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/25 text-violet-300 ring-1 ring-violet-400/30 font-medium shrink-0 mt-1">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-brand/25 text-brand ring-1 ring-brand/30 font-medium shrink-0 mt-1">
             TASK
           </span>
           <div className="flex-1 min-w-0">
@@ -194,12 +194,12 @@ export function TaskEditPanel({ task, onClose }: Props) {
                       </svg>
                       <span className="font-medium truncate flex-1">{note.title}</span>
                       <span
-                        className={`inline-block text-[9px] px-1.5 py-0.5 rounded-full ${
+                        className={`inline-block text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
                           note.status === "completed"
-                            ? "bg-emerald-500/20 text-emerald-300"
+                            ? "bg-emerald-500/20 dark:text-emerald-300 light:bg-emerald-600 light:text-white"
                             : note.status === "active"
-                            ? "bg-sky-500/20 text-sky-300"
-                            : "bg-rose-500/20 text-rose-300"
+                            ? "bg-sky-500/20 dark:text-sky-300 light:bg-sky-600 light:text-white"
+                            : "bg-rose-500/20 dark:text-rose-300 light:bg-rose-600 light:text-white"
                         }`}
                       >
                         {statusLabel[note.status]}

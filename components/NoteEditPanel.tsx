@@ -230,8 +230,7 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
                   return (
                     <span
                       key={tag}
-                      className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded font-medium"
-                      style={{ background: `${c}28`, color: c, boxShadow: `0 0 0 1px ${c}44` }}
+                      className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-brand/20 dark:text-brand light:bg-brand light:text-brand-text ring-1 ring-brand-ring font-medium"
                     >
                       {tag}
                       <button onClick={() => removeTag(tag)} className="hover:opacity-70 leading-none">×</button>

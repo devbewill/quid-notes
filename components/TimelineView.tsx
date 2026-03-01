@@ -67,9 +67,9 @@ function stripMd(text: string): string {
 
 // ─── Status pill ──────────────────────────────────────────────────────────────
 const STATUS_STYLES: Record<string, string> = {
-  idle: "bg-zinc-500/15 text-zinc-400 ring-zinc-500/20",
-  active: "bg-sky-500/15 text-sky-400 ring-sky-500/20",
-  completed: "bg-emerald-500/15 text-emerald-400 ring-emerald-500/20",
+  idle: "bg-rose-500/15 text-rose-400 ring-rose-500/20 dark:text-rose-300 light:bg-rose-600 light:text-white light:ring-transparent",
+  active: "bg-sky-500/15 text-sky-400 ring-sky-500/20 dark:text-sky-300 light:bg-sky-600 light:text-white light:ring-transparent",
+  completed: "bg-emerald-500/15 text-emerald-400 ring-emerald-500/20 dark:text-emerald-300 light:bg-emerald-600 light:text-white light:ring-transparent",
 };
 const STATUS_LABELS: Record<string, string> = {
   idle: "To Do",
@@ -96,7 +96,7 @@ function TagChip({ name, globalTagColors }: { name: string; globalTagColors: Rec
       {name}
     </span>
   ) : (
-    <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-300 ring-1 ring-violet-400/25">
+    <span className="text-[10px] px-1.5 py-0.5 rounded bg-brand/20 dark:text-brand light:bg-brand light:text-brand-text ring-1 ring-brand-ring font-medium">
       {name}
     </span>
   );
@@ -125,10 +125,10 @@ function NoteCard({
       exit={{ opacity: 0, scale: 0.97 }}
       transition={{ duration: 0.2, delay: index * 0.03 }}
       onClick={() => onEdit(note)}
-      className="group relative cursor-pointer rounded-xl border border-border bg-surface hover:border-slate-500/40 hover:shadow-lg hover:shadow-black/30 transition-all duration-200 overflow-hidden"
+      className="group relative cursor-pointer rounded-xl border border-border bg-surface hover:border-brand/40 hover:shadow-lg hover:shadow-black/30 transition-all duration-200 overflow-hidden"
     >
       {/* Type accent line */}
-      <div className="absolute left-0 inset-y-0 w-[3px] bg-slate-500/50 group-hover:bg-slate-400 transition-colors" />
+      <div className="absolute left-0 inset-y-0 w-[3px] bg-slate-500/50 group-hover:bg-brand transition-colors" />
 
       <div className="pl-5 pr-5 py-4">
         {/* Header row */}
@@ -138,7 +138,7 @@ function NoteCard({
               <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
             </svg>
           )}
-          <span className="text-[10px] font-bold tracking-widest uppercase text-slate-400/70">nota</span>
+          <span className="text-[10px] font-bold tracking-widest uppercase text-slate-400/70">note</span>
           <StatusPill status={note.status} />
           {overdue && (
             <span className="text-[9px] font-bold tracking-wide uppercase text-rose-400 bg-rose-500/15 px-1.5 py-0.5 rounded ring-1 ring-rose-400/25 animate-pulse">
@@ -151,7 +151,7 @@ function NoteCard({
         </div>
 
         {/* Title */}
-        <p className="text-sm font-semibold text-text group-hover:text-white transition-colors leading-snug mb-1.5">
+        <p className="text-sm font-semibold text-text group-hover:dark:text-brand group-hover:light:text-black transition-all duration-200 leading-snug mb-1.5">
           {note.title}
         </p>
 
@@ -199,10 +199,10 @@ function TaskCard({
       exit={{ opacity: 0, scale: 0.97 }}
       transition={{ duration: 0.2, delay: index * 0.03 }}
       onClick={() => onEditTask(task)}
-      className="group relative cursor-pointer rounded-xl border border-border bg-surface hover:border-violet-500/40 hover:shadow-lg hover:shadow-black/30 transition-all duration-200 overflow-hidden"
+      className="group relative cursor-pointer rounded-xl border border-border bg-surface hover:border-brand/40 hover:shadow-lg hover:shadow-black/30 transition-all duration-200 overflow-hidden"
     >
       {/* Type accent line */}
-      <div className="absolute left-0 inset-y-0 w-[3px] bg-violet-500/50 group-hover:bg-violet-400 transition-colors" />
+      <div className="absolute left-0 inset-y-0 w-[3px] bg-brand/50 group-hover:bg-brand transition-colors" />
 
       <div className="pl-5 pr-5 py-4">
         {/* Header row */}
@@ -212,7 +212,7 @@ function TaskCard({
               <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
             </svg>
           )}
-          <span className="text-[10px] font-bold tracking-widest uppercase text-violet-400/70">task</span>
+          <span className="text-[10px] font-bold tracking-widest uppercase text-brand/70">task</span>
           <StatusPill status={task.status} />
           {overdue && (
             <span className="text-[9px] font-bold tracking-wide uppercase text-rose-400 bg-rose-500/15 px-1.5 py-0.5 rounded ring-1 ring-rose-400/25 animate-pulse">
@@ -231,7 +231,7 @@ function TaskCard({
         </div>
 
         {/* Title */}
-        <p className="text-sm font-semibold text-text group-hover:text-white transition-colors leading-snug mb-1.5">
+        <p className="text-sm font-semibold text-text group-hover:dark:text-brand group-hover:light:text-black transition-all duration-200 leading-snug mb-1.5">
           {task.title}
         </p>
 

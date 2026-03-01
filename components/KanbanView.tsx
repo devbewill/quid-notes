@@ -10,10 +10,10 @@ import { cn } from "@/lib/cn";
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 type AnyItem = (NoteDoc & { _kind: "note" }) | (TaskDoc & { _kind: "task" });
 
-const COLUMNS: { key: string; label: string; color: string }[] = [
-  { key: "idle", label: "To Do", color: "border-zinc-500/40" },
-  { key: "active", label: "In Progress", color: "border-sky-500/40" },
-  { key: "completed", label: "Completed", color: "border-emerald-500/40" },
+const COLUMNS: { key: string; label: string; borderColor: string; bgColor: string }[] = [
+  { key: "idle", label: "To Do", borderColor: "border-zinc-500/40", bgColor: "bg-zinc-500" },
+  { key: "active", label: "In Progress", borderColor: "border-sky-500/40", bgColor: "bg-sky-500" },
+  { key: "completed", label: "Completed", borderColor: "border-emerald-500/40", bgColor: "bg-emerald-500" },
 ];
 
 function stripMd(text: string): string {
@@ -55,8 +55,13 @@ function KanbanCard({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.15 }}
+      draggable={true}
+      onDragStart={(e) => {
+        e.dataTransfer.setData("application/json", JSON.stringify(item));
+        e.dataTransfer.effectAllowed = "move";
+      }}
       onClick={() => item._kind === "note" ? onEdit(item as NoteDoc) : onEditTask(item as TaskDoc)}
-      className="group cursor-pointer rounded-lg border border-border bg-bg hover:border-slate-400/30 hover:shadow-md hover:shadow-black/20 transition-all duration-150 p-3.5"
+      className="group cursor-pointer rounded-lg border border-border bg-surface hover:border-slate-400/30 hover:shadow-md hover:shadow-black/20 transition-all duration-150 p-3.5"
     >
       {/* Type pill */}
       <div className="flex items-center gap-2 mb-2">
@@ -67,9 +72,9 @@ function KanbanCard({
         )}
         <span className={cn(
           "text-[9px] font-bold tracking-widest uppercase",
-          item._kind === "note" ? "text-slate-400/70" : "text-violet-400/70"
+          item._kind === "note" ? "text-slate-400/70" : "text-brand/70"
         )}>
-          {item._kind === "note" ? "nota" : "task"}
+          {item._kind === "note" ? "note" : "task"}
         </span>
         {overdue && (
           <span className="text-[9px] font-bold tracking-wide uppercase text-rose-400 bg-rose-500/15 px-1.5 py-0.5 rounded ring-1 ring-rose-400/25 animate-pulse">
@@ -79,7 +84,7 @@ function KanbanCard({
       </div>
 
       {/* Title */}
-      <p className="text-sm font-medium text-text group-hover:text-white transition-colors leading-snug mb-1.5 line-clamp-2">
+      <p className="text-sm font-medium text-text group-hover:dark:text-brand group-hover:light:text-black group-hover:light:font-semibold transition-all duration-150 leading-snug mb-1.5 line-clamp-2">
         {item.title}
       </p>
 
@@ -101,7 +106,7 @@ function KanbanCard({
               {tag}
             </span>
           ) : (
-            <span key={tag} className="text-[9px] px-1 py-0.5 rounded bg-violet-500/20 text-violet-300 ring-1 ring-violet-400/25">
+            <span key={tag} className="text-[9px] px-1 py-0.5 rounded bg-brand/20 dark:text-brand light:bg-brand light:text-brand-text ring-1 ring-brand-ring font-medium">
               {tag}
             </span>
           );
@@ -125,7 +130,8 @@ function KanbanCard({
 function KanbanColumn({
   colKey,
   label,
-  color,
+  borderColor,
+  bgColor,
   items,
   globalTagColors,
   onEdit,
@@ -134,7 +140,8 @@ function KanbanColumn({
 }: {
   colKey: string;
   label: string;
-  color: string;
+  borderColor: string;
+  bgColor: string;
   items: AnyItem[];
   globalTagColors: Record<string, string>;
   onEdit: (n: NoteDoc) => void;
@@ -143,7 +150,7 @@ function KanbanColumn({
 }) {
   return (
     <div
-      className={cn("flex-1 min-w-[260px] rounded-xl border-t-2 bg-surface/30 flex flex-col", color)}
+      className={cn("flex-1 min-w-[260px] flex flex-col")}
       onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
       onDrop={(e) => {
         e.preventDefault();
@@ -155,9 +162,14 @@ function KanbanColumn({
         } catch { /* noop */ }
       }}
     >
+      {/* Status line indicator */}
+      <div className={cn("h-1.5 w-full shrink-0 mb-3 rounded-full opacity-80", bgColor)} />
+
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3">
-        <span className="text-xs font-semibold text-text/70 uppercase tracking-widest">{label}</span>
+      <div className="flex items-center justify-between px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-text/80 uppercase tracking-widest">{label}</span>
+        </div>
         <span className="text-[10px] text-muted tabular-nums bg-bg/60 rounded px-1.5 py-0.5">{items.length}</span>
       </div>
 
@@ -287,15 +299,21 @@ export function KanbanView({ onEdit, onEditTask, search, typeFilter, tagFilter, 
     );
   }
 
+  const itemsByStatus = columns.reduce((acc, col) => {
+    acc[col.key] = col.items;
+    return acc;
+  }, {} as Record<string, AnyItem[]>);
+
   return (
     <div className="flex gap-4 p-4 h-full overflow-x-auto">
-      {columns.map((col) => (
+      {COLUMNS.map((col) => (
         <KanbanColumn
           key={col.key}
           colKey={col.key}
           label={col.label}
-          color={col.color}
-          items={col.items}
+          borderColor={col.borderColor}
+          bgColor={col.bgColor}
+          items={itemsByStatus[col.key as keyof typeof itemsByStatus] || []}
           globalTagColors={globalTagColors}
           onEdit={onEdit}
           onEditTask={onEditTask}

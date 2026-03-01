@@ -1,3 +1,35 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: #0B0B0B;
+    --surface: #161616;
+    --border: #262626;
+    --text: #E8E8E8;
+    --muted: #666666;
+    --accent: #FFFFFF;
+    --brand: #8b5cf6;
+    --brand-text: #FFFFFF;
+    --brand-ring: rgba(139, 92, 246, 0.4);
+  }
+
+  :root.light {
+    --bg: #F5F5F5;
+    --surface: #FFFFFF;
+    --border: #E0E0E0;
+    --text: #000000;
+    --muted: #666666;
+    --accent: #000000;
+    --brand: #D4FF00;
+    --brand-text: #000000;
+    --brand-ring: #8A9600;
+  }
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}

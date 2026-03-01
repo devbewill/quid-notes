@@ -130,7 +130,7 @@ export function CreateModal({ onClose, defaultType = "note" }: Props) {
                 "text-xs px-4 py-1.5 rounded-full font-medium disabled:opacity-40 transition-all",
                 type === "note"
                   ? "bg-slate-500/30 text-slate-200 hover:bg-slate-500/50"
-                  : "bg-violet-500 text-white hover:bg-violet-400"
+                  : "bg-brand text-brand-text hover:opacity-90"
               )}
             >
               {loading ? "…" : type === "note" ? "Create note" : "Create task"}

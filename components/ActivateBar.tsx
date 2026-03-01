@@ -53,7 +53,7 @@ export function ActivateBar({ noteCount, taskCount, onClear, onActivate, onTrash
         {noteCount > 0 && taskCount === 0 && (
           <button
             onClick={onActivate}
-            className="flex items-center gap-1.5 text-xs font-semibold text-bg bg-violet-400 border border-violet-400/50 rounded-lg px-3 py-1.5 hover:bg-violet-300 transition-colors shadow-sm shadow-violet-500/20"
+            className="flex items-center gap-1.5 text-xs font-semibold text-brand-text bg-brand border border-brand/50 rounded-lg px-3 py-1.5 hover:opacity-90 transition-all shadow-sm shadow-brand/20"
             title="Activate (convert to task if note)"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" /></svg>

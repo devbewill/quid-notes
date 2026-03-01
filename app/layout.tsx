@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   description: "A minimal app for managing thoughts and actions.",
 };
 
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: {
@@ -16,7 +18,9 @@ export default function RootLayout({
   return (
     <html lang="it" className={GeistSans.className}>
       <body className="bg-bg text-text antialiased">
-        <Providers>{children}</Providers>
+        <ThemeProvider>
+          <Providers>{children}</Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

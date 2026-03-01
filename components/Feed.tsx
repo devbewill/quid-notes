@@ -29,13 +29,13 @@ type SortState = { col: SortCol; dir: SortDir } | null;
 // ─── Status badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: "idle" | "active" | "completed" }) {
   const map = {
-    idle: "bg-rose-500/25 text-rose-300 ring-1 ring-rose-400/30",
-    active: "bg-sky-500/25 text-sky-300 ring-1 ring-sky-400/30",
-    completed: "bg-emerald-500/25 text-emerald-300 ring-1 ring-emerald-400/30",
+    idle: "bg-rose-500/25 text-rose-400 ring-rose-400/30 dark:text-rose-300 light:bg-rose-600 light:text-white",
+    active: "bg-sky-500/25 text-sky-400 ring-sky-400/30 dark:text-sky-300 light:bg-sky-600 light:text-white",
+    completed: "bg-emerald-500/25 text-emerald-400 ring-emerald-400/30 dark:text-emerald-300 light:bg-emerald-600 light:text-white",
   } as const;
   const label = { idle: "To Do", active: "In Progress", completed: "Completed" };
   return (
-    <span className={cn("text-xs px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap", map[status])}>
+    <span className={cn("text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ring-1 ring-transparent transition-colors", map[status])}>
       {label[status]}
     </span>
   );
@@ -71,7 +71,7 @@ function TagsCell({ tags, tagColors }: { tags?: string[]; tagColors?: TagColorEn
             {t}
           </span>
         ) : (
-          <span key={t} className="text-xs px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-300 ring-1 ring-violet-400/25">
+          <span key={t} className="text-xs px-1.5 py-0.5 rounded bg-brand/20 dark:text-brand light:bg-brand light:text-brand-text ring-1 ring-brand-ring font-medium">
             {t}
           </span>
         );
@@ -207,8 +207,8 @@ function NoteRow({
             checked={selected}
             onChange={(e) => { e.stopPropagation(); onSelect(note._id); }}
             className={cn(
-              "appearance-none w-[14px] h-[14px] rounded border border-muted/40 bg-surface checked:bg-accent checked:border-accent cursor-pointer transition-all relative outline-none",
-              "after:content-[''] after:hidden checked:after:block after:absolute after:left-[4px] after:top-[1px] after:w-[4px] after:h-[8px] after:border-solid after:border-bg after:border-b-[1.5px] after:border-r-[1.5px] after:rotate-45",
+              "appearance-none w-[14px] h-[14px] rounded border border-muted/40 bg-surface checked:bg-brand checked:border-brand cursor-pointer transition-all relative outline-none",
+              "after:content-[''] after:hidden checked:after:block after:absolute after:left-[4px] after:top-[1px] after:w-[4px] after:h-[8px] after:border-solid after:border-brand-text after:border-b-[1.5px] after:border-r-[1.5px] after:rotate-45",
               hovered || selected ? "opacity-100" : "opacity-0"
             )}
           />
@@ -273,8 +273,8 @@ function TaskRow({ task, onEdit, onEditTask, selected, onSelectTask }: {
                 checked={selected}
                 onChange={(e) => { e.stopPropagation(); onSelectTask(task._id); }}
                 className={cn(
-                  "appearance-none w-[14px] h-[14px] rounded border border-muted/40 bg-surface checked:bg-violet-500 checked:border-violet-500 cursor-pointer transition-all relative outline-none",
-                  "after:content-[''] after:hidden checked:after:block after:absolute after:left-[4px] after:top-[1px] after:w-[4px] after:h-[8px] after:border-solid after:border-bg after:border-b-[1.5px] after:border-r-[1.5px] after:rotate-45",
+                  "appearance-none w-[14px] h-[14px] rounded border border-muted/40 bg-surface checked:bg-brand checked:border-brand cursor-pointer transition-all relative outline-none",
+                  "after:content-[''] after:hidden checked:after:block after:absolute after:left-[4px] after:top-[1px] after:w-[4px] after:h-[8px] after:border-solid after:border-brand-text after:border-b-[1.5px] after:border-r-[1.5px] after:rotate-45",
                   hovered || selected ? "opacity-100" : "opacity-0"
                 )}
               />
@@ -282,7 +282,7 @@ function TaskRow({ task, onEdit, onEditTask, selected, onSelectTask }: {
           </div>
         </td>
         <td className="w-8 pr-2">
-          <svg className="w-4 h-4 text-violet-500/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-4 h-4 text-brand/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </td>

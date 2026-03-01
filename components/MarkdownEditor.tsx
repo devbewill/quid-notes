@@ -70,7 +70,7 @@ function MarkdownPreview({ content }: { content: string }) {
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-violet-400 hover:text-violet-300 underline underline-offset-2"
+              className="text-brand hover:opacity-80 underline underline-offset-2"
             >
               {children}
             </a>
@@ -83,7 +83,7 @@ function MarkdownPreview({ content }: { content: string }) {
           ),
           li: ({ children }) => <li className="text-text">{children}</li>,
           blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-violet-400 pl-4 my-3 text-muted italic">
+            <blockquote className="border-l-2 border-brand pl-4 my-3 text-muted italic">
               {children}
             </blockquote>
           ),
@@ -99,7 +99,7 @@ function MarkdownPreview({ content }: { content: string }) {
                 {children}
               </code>
             ) : (
-              <code className="bg-bg border border-border text-violet-300 px-1.5 py-0.5 rounded text-xs font-mono">
+              <code className="bg-bg border border-border text-brand px-1.5 py-0.5 rounded text-xs font-mono">
                 {children}
               </code>
             );
@@ -276,7 +276,8 @@ export function MarkdownEditor({ value, onChange, onBlur }: Props) {
               type="button"
               onClick={() => setMode(m)}
               className={cn(
-                "text-[10px] px-2 py-0.5 rounded transition-colors",
+                "text-[10px] px-2 py-0.5 rounded transition-all duration-200",
+                "light:hover:bg-black light:hover:text-white",
                 mode === m ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text"
               )}
             >
@@ -314,7 +315,7 @@ export function MarkdownEditor({ value, onChange, onBlur }: Props) {
           <button
             type="button"
             onClick={handleLinkInsert}
-            className="text-xs px-3 py-1 rounded bg-violet-500 text-white font-medium hover:bg-violet-400 transition-colors"
+            className="text-xs px-3 py-1 rounded bg-brand text-brand-text font-medium hover:opacity-90 transition-opacity"
           >
             Insert
           </button>
