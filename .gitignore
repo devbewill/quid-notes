@@ -32,4 +32,4 @@ npm-debug.log*
 # IDE
 .vscode/
 .idea/
-project-description.md
+project*.md
