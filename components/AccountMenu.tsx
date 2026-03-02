@@ -9,7 +9,6 @@ import { api } from "@/convex/_generated/api";
 import { useLocale } from "@/hooks/useLocale";
 import { ExportDataButton } from "./ExportDataButton";
 import { DeleteAccountModal } from "./DeleteAccountModal";
-import { ThemeToggle } from "./ThemeToggle";
 import { MarketingToggle } from "./MarketingToggle";
 
 function Section({
@@ -21,7 +20,7 @@ function Section({
 }) {
   return (
     <div className="py-3">
-      <p className="text-xs text-muted uppercase tracking-widest mb-2 px-4">
+      <p className="text-xs text-text-muted uppercase tracking-widest mb-2 px-4">
         {label}
       </p>
       <div className="flex flex-col">{children}</div>
@@ -43,8 +42,8 @@ function MenuItem({
       onClick={onClick}
       className={`text-left text-sm px-4 py-2 transition-colors ${
         danger
-          ? "text-red-400 hover:text-red-300"
-          : "text-text hover:bg-surface"
+          ? "text-semantic-error hover:text-semantic-error/80"
+          : "text-text-primary hover:bg-bg-hover"
       }`}
     >
       {children}
@@ -57,7 +56,6 @@ export function AccountMenu() {
   const { signOut } = useAuthActions();
   const user = useQuery(api.users.current);
   const updateProfile = useMutation(api.users.updateProfile);
-  const updateMarketing = useMutation(api.users.updateMarketingConsent);
 
   const [open, setOpen] = useState(false);
   const [editingName, setEditingName] = useState(false);
@@ -86,12 +84,12 @@ export function AccountMenu() {
       {/* Trigger button */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 px-4 py-3 w-full hover:bg-surface transition-colors"
+        className="flex items-center gap-2 px-4 py-3 w-full hover:bg-bg-hover transition-colors"
       >
-        <span className="w-7 h-7 rounded-full bg-border flex items-center justify-center text-xs font-semibold text-text flex-shrink-0">
+        <span className="w-7 h-7 rounded-full bg-bg-elevated border border-border-subtle flex items-center justify-center text-xs font-semibold text-text-primary flex-shrink-0">
           {initials}
         </span>
-        <span className="text-sm text-text truncate">{user.name ?? user.email}</span>
+        <span className="text-sm text-text-primary truncate">{user.name ?? user.email}</span>
       </button>
 
       {/* Dropdown panel */}
@@ -109,15 +107,15 @@ export function AccountMenu() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.15 }}
-              className="absolute bottom-14 left-2 z-50 w-72 bg-bg border border-border rounded-xl shadow-2xl overflow-hidden"
+              className="absolute bottom-14 left-2 z-50 w-72 bg-bg-surface border border-border-subtle rounded-lg shadow-lg overflow-hidden"
             >
               {/* User info */}
-              <div className="px-4 py-4 border-b border-border">
-                <p className="text-sm font-medium text-text">
+              <div className="px-4 py-4 border-b border-border-subtle">
+                <p className="text-sm font-medium text-text-primary">
                   {user.name ?? user.email}
                 </p>
-                <p className="text-xs text-muted">{user.email}</p>
-                <p className="text-xs text-muted mt-0.5">
+                <p className="text-xs text-text-muted">{user.email}</p>
+                <p className="text-xs text-text-muted mt-0.5">
                   {t("auth_registered_via")}{" "}
                   {user.authProvider === "google"
                     ? t("auth_google")
@@ -134,17 +132,17 @@ export function AccountMenu() {
                       value={nameInput}
                       onChange={(e) => setNameInput(e.target.value)}
                       placeholder={t("account_name_placeholder")}
-                      className="flex-1 bg-surface border border-border rounded px-2 py-1 text-sm text-text outline-none focus:border-accent"
+                      className="flex-1 bg-bg-elevated border border-border-subtle rounded-md px-2 py-1 text-sm text-text-primary outline-none focus:border-accent-primary"
                     />
                     <button
                       onClick={handleSaveName}
-                      className="text-xs text-accent font-medium"
+                      className="text-xs text-accent-primary font-medium"
                     >
                       {t("account_save")}
                     </button>
                     <button
                       onClick={() => setEditingName(false)}
-                      className="text-xs text-muted"
+                      className="text-xs text-text-muted"
                     >
                       {t("account_cancel")}
                     </button>
@@ -160,23 +158,18 @@ export function AccountMenu() {
                   </MenuItem>
                 )}
 
-                {/* Theme Toggle */}
-                <div className="flex items-center justify-between py-1">
-                  <ThemeToggle />
-                </div>
-
                 {/* Change password — email auth only */}
                 {user.authProvider === "email" && (
                   <MenuItem>{t("account_change_password")}</MenuItem>
                 )}
 
                 {/* Marketing toggle */}
-                <div className="flex items-center justify-between py-1">
+                <div className="flex items-center justify-between px-4 py-2">
                   <MarketingToggle />
                 </div>
               </Section>
 
-              <div className="border-t border-border" />
+              <div className="border-t border-border-subtle" />
 
               {/* DATA & PRIVACY section */}
               <Section label={t("privacy_section")}>
@@ -186,20 +179,20 @@ export function AccountMenu() {
                 <Link
                   href="/privacy"
                   target="_blank"
-                  className="text-sm text-text hover:bg-surface px-4 py-2 transition-colors block"
+                  className="text-sm text-text-primary hover:bg-bg-hover px-4 py-2 transition-colors block"
                 >
                   {t("privacy_policy_link")}
                 </Link>
                 <Link
                   href="/terms"
                   target="_blank"
-                  className="text-sm text-text hover:bg-surface px-4 py-2 transition-colors block"
+                  className="text-sm text-text-primary hover:bg-bg-hover px-4 py-2 transition-colors block"
                 >
                   {t("terms_link")}
                 </Link>
               </Section>
 
-              <div className="border-t border-border" />
+              <div className="border-t border-border-subtle" />
 
               {/* DANGER ZONE */}
               <Section label={t("danger_zone_section")}>
@@ -214,12 +207,12 @@ export function AccountMenu() {
                 </MenuItem>
               </Section>
 
-              <div className="border-t border-border" />
+              <div className="border-t border-border-subtle" />
 
               {/* Sign out */}
               <button
                 onClick={() => signOut()}
-                className="w-full text-left text-sm text-muted hover:text-text px-4 py-3 transition-colors"
+                className="w-full text-left text-sm text-text-muted hover:text-text-primary px-4 py-3 transition-colors"
               >
                 {t("account_sign_out")}
               </button>
@@ -228,7 +221,7 @@ export function AccountMenu() {
         )}
       </AnimatePresence>
 
-      {/* Delete modal — outside the dropdown */}
+      {/* Delete modal — outside of dropdown */}
       <AnimatePresence>
         {showDeleteModal && (
           <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />

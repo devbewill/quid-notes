@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import type { NoteDoc } from "@/lib/types";
 import { MarkdownEditor } from "@/components/MarkdownEditor";
@@ -37,7 +37,6 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
   const [tags, setTags] = useState<string[]>(note.tags ?? []);
   const [tagColors, setTagColors] = useState<Array<{ name: string; color: string }>>(note.tagColors ?? []);
   const [tagInput, setTagInput] = useState("");
-  const [tagColor, setTagColor] = useState("#a78bfa");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Suggestions: existing global tags matching input, not already added
@@ -45,7 +44,7 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
     (t) => !tags.includes(t) && (tagInput === "" || t.includes(tagInput.toLowerCase().trim()))
   ).slice(0, 6);
 
-  // Is the current input an existing tag?
+  // Is current input an existing tag?
   const isExistingTag = !!globalTagColors[tagInput.toLowerCase().trim()];
 
   useEffect(() => {
@@ -57,7 +56,6 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
     setTags(note.tags ?? []);
     setTagColors(note.tagColors ?? []);
     setTagInput("");
-    setTagColor("#a78bfa");
   }, [note._id]);
 
   const commit = (overrides: { status?: "idle" | "active" | "completed"; tags?: string[]; tagColors?: Array<{ name: string; color: string }> } = {}) =>
@@ -86,8 +84,7 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
   const addTag = () => {
     const t = tagInput.trim().toLowerCase();
     if (!t || tags.includes(t)) { setTagInput(""); return; }
-    // Use established global color if tag already exists, otherwise use current picker color
-    const color = globalTagColors[t] ?? tagColor;
+    const color = globalTagColors[t] ?? "#8B5CF6";
     addTagWithColor(t, color);
   };
 
@@ -98,11 +95,11 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
   };
 
   // Helper: get color for a tag
-  const getTagColor = (tag: string) => tagColors.find((c) => c.name === tag)?.color ?? "#a78bfa";
+  const getTagColor = (tag: string) => tagColors.find((c) => c.name === tag)?.color ?? "#8B5CF6";
 
   const handleClose = () => { commit(); onClose(); };
 
-  // Keep a stable ref so the ESC listener always calls the latest handleClose
+  // Keep a stable ref so that ESC listener always calls latest handleClose
   const handleCloseRef = useRef(handleClose);
   useEffect(() => { handleCloseRef.current = handleClose; });
 
@@ -118,201 +115,193 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center p-6">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60" onClick={handleClose} />
+    <AnimatePresence>
+      <div className="fixed inset-0 z-40 flex items-center justify-center p-6">
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          className="absolute inset-0 bg-black/60"
+          onClick={handleClose}
+        />
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.96 }}
-        transition={{ duration: 0.18 }}
-        className="relative z-10 w-full max-w-4xl min-w-[55%] h-[72vh] bg-surface border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden"
-      >
-        {/* Header */}
-        <div className="flex items-start gap-3 px-6 py-4 border-b border-border">
-          <div className="flex-1 min-w-0">
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onBlur={() => commit()}
-              placeholder="Note title…"
-              className="w-full text-lg font-semibold bg-transparent outline-none text-text placeholder:text-muted border-none"
-            />
-            <h4 className="text-[10px] uppercase tracking-wider font-bold text-muted mb-4 px-1">Details</h4>
-            <p className="text-[10px] text-muted mt-0.5 tabular-nums">
-              Modified {new Date(displayNote.updatedAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}
-            </p>
-          </div>
-          <div className="flex items-center gap-1 shrink-0 mt-0.5">
-            <button
-              onClick={() => togglePin({ noteId: note._id })}
-              className={cn("p-1.5 rounded-md transition-colors", displayNote.isPinned ? "text-amber-500 bg-amber-500/10 hover:bg-amber-500/20" : "text-muted hover:text-text hover:bg-surface/60")}
-              title={displayNote.isPinned ? "Remove from pinned" : "Pin to top"}
-            >
-              <svg className={cn("w-4 h-4", displayNote.isPinned && "fill-amber-500")} viewBox="0 0 20 20" stroke="currentColor" fill="none">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={displayNote.isPinned ? 0 : 1.5} d={displayNote.isPinned ? "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" : "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"} />
-              </svg>
-            </button>
-            <button
-              onClick={handleClose}
-              className="p-1 text-muted hover:text-text text-2xl leading-none transition-colors"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-
-        {/* Body — two columns */}
-        <div className="flex-1 overflow-hidden flex">
-          {/* Left: meta */}
-          <div className="w-56 shrink-0 border-r border-border p-5 flex flex-col gap-5 overflow-y-auto">
-            {/* Status */}
-            <div className="flex flex-col gap-1.5">
-              <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                Status
-              </label>
-              <select
-                value={status}
-                onChange={(e) => {
-                  const s = e.target.value as "idle" | "active" | "completed";
-                  setStatus(s);
-                  commit({ status: s });
-                }}
-                className="bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text outline-none focus:border-accent transition-colors"
-              >
-                <option value="idle">To Do</option>
-                <option value="active">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
-            </div>
-
-            {/* Start date */}
-            <div className="flex flex-col gap-1.5">
-              <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-                Start Date
-              </label>
+        {/* Modal */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.96 }}
+          transition={{ duration: 0.18 }}
+          className="relative z-10 w-full max-w-5xl w-3/5 h-[72vh] bg-bg-surface border border-border-subtle rounded-lg shadow-lg flex flex-col overflow-hidden"
+        >
+          {/* Header */}
+          <div className="flex items-start gap-3 px-6 py-4 border-b border-border-subtle">
+            <div className="flex-1 min-w-0">
               <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 onBlur={() => commit()}
-                className="bg-bg border border-border rounded-lg px-2 py-1.5 text-xs text-text outline-none focus:border-accent transition-colors"
+                placeholder="Note title…"
+                className="w-full text-lg font-semibold bg-transparent outline-none text-text-primary placeholder:text-text-muted border-none"
               />
+              <h4 className="text-[10px] uppercase tracking-wider font-bold text-text-muted mb-4 px-1">Details</h4>
+              <p className="text-[10px] text-text-muted mt-0.5 tabular-nums">
+                Modified {new Date(displayNote.updatedAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}
+              </p>
             </div>
-
-            {/* Due date */}
-            <div className="flex flex-col gap-1.5">
-              <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                Due Date
-              </label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                onBlur={() => commit()}
-                className="bg-bg border border-border rounded-lg px-2 py-1.5 text-xs text-text outline-none focus:border-accent transition-colors"
-              />
-            </div>
-
-            {/* Tags */}
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" /></svg>
-                Tags
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {tags.map((tag) => {
-                  const c = getTagColor(tag);
-                  return (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-brand/20 dark:text-brand light:bg-brand light:text-brand-text ring-1 ring-brand-ring font-medium"
-                    >
-                      {tag}
-                      <button onClick={() => removeTag(tag)} className="hover:opacity-70 leading-none">×</button>
-                    </span>
-                  );
-                })}
-              </div>
-
-              {/* Tag input with autocomplete */}
-              <div className="relative">
-                <div className="flex gap-1.5 items-center">
-                  {!isExistingTag && (
-                    <input
-                      type="color"
-                      value={tagColor}
-                      onChange={(e) => setTagColor(e.target.value)}
-                      className="w-6 h-6 rounded cursor-pointer bg-transparent border-0 outline-none p-0 shrink-0"
-                      title="Choose color (for new tags only)"
-                    />
-                  )}
-                  <input
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onFocus={() => setShowSuggestions(true)}
-                    onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(); }
-                      if (e.key === "Escape") setShowSuggestions(false);
-                    }}
-                    placeholder="Add tag..."
-                    className="flex-1 bg-bg border border-border rounded-lg px-2 py-1.5 text-xs text-text outline-none focus:border-accent transition-colors placeholder:text-muted"
-                  />
-                </div>
-
-                {/* Autocomplete dropdown */}
-                {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute left-0 right-0 top-full mt-1 bg-surface border border-border rounded-lg shadow-lg z-20 overflow-hidden">
-                    {suggestions.map((s) => {
-                      const c = globalTagColors[s];
-                      return (
-                        <button
-                          key={s}
-                          type="button"
-                          onMouseDown={(e) => { e.preventDefault(); addTagWithColor(s, c); }}
-                          className="w-full text-left px-3 py-1.5 text-xs hover:bg-bg/60 transition-colors flex items-center gap-2"
-                        >
-                          <span
-                            className="px-1.5 py-0.5 rounded font-medium"
-                            style={{ background: `${c}28`, color: c, boxShadow: `0 0 0 1px ${c}44` }}
-                          >
-                            {s}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-            </div>
-
-            {/* Delete */}
-            <div className="mt-auto pt-4 border-t border-border">
+            <div className="flex items-center gap-1 shrink-0 mt-0.5">
               <button
-                onClick={handleDelete}
-                className="text-xs text-rose-400 hover:text-rose-300 transition-colors"
+                onClick={() => togglePin({ noteId: note._id })}
+                className={cn("p-1.5 rounded-md transition-colors", displayNote.isPinned ? "text-semantic-warning bg-accent-lighter hover:bg-accent-light" : "text-text-muted hover:text-text-primary hover:bg-bg-hover")}
+                title={displayNote.isPinned ? "Remove from pinned" : "Pin to top"}
               >
-                Delete note
+                <svg className={cn("w-4 h-4", displayNote.isPinned && "fill-semantic-warning")} viewBox="0 0 20 20" stroke="currentColor" fill="none">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={displayNote.isPinned ? 0 : 1.5} d={displayNote.isPinned ? "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" : "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"} />
+                </svg>
+              </button>
+              <button
+                onClick={handleClose}
+                className="p-1 text-text-muted hover:text-text-primary text-2xl leading-none transition-colors"
+              >
+                ×
               </button>
             </div>
           </div>
 
-          {/* Right: markdown editor */}
-          <div className="flex-1 overflow-hidden flex flex-col">
-            <MarkdownEditor
-              value={text}
-              onChange={setText}
-              onBlur={() => commit()}
-            />
+          {/* Body — two columns */}
+          <div className="flex-1 overflow-hidden flex">
+            {/* Left: meta */}
+            <div className="w-56 shrink-0 border-r border-border-subtle p-5 flex flex-col gap-5 overflow-y-auto">
+              {/* Status */}
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                  Status
+                </label>
+                <select
+                  value={status}
+                  onChange={(e) => {
+                    const s = e.target.value as "idle" | "active" | "completed";
+                    setStatus(s);
+                    commit({ status: s });
+                  }}
+                  className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-colors"
+                >
+                  <option value="idle">To Do</option>
+                  <option value="active">In Progress</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+
+              {/* Start date */}
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-colors"
+                />
+              </div>
+
+              {/* Due date */}
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+                  Due Date
+                </label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-colors"
+                />
+              </div>
+
+              {/* Tags */}
+              <div className="flex flex-col gap-1.5 relative">
+                <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l6 6a2 2 0 0 1 0 2.828l-6 6a2 2 0 0 1-1.414.586H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /></svg>
+                  Tags
+                </label>
+                <div className="flex flex-wrap gap-1">
+                  {tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="relative group px-2 py-0.5 rounded-md text-xs font-medium text-text-inverse transition-opacity"
+                      style={{ backgroundColor: getTagColor(tag) }}
+                    >
+                      {tag}
+                      <button
+                        onClick={() => removeTag(tag)}
+                        className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-bg-elevated border border-border-subtle rounded-full flex items-center justify-center text-[8px] text-text-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-1">
+                  <input
+                    value={tagInput}
+                    onChange={(e) => {
+                      setTagInput(e.target.value);
+                      setShowSuggestions(true);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addTag();
+                      }
+                    }}
+                    placeholder="Add tag…"
+                    className="flex-1 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-colors"
+                  />
+                </div>
+                {/* Tag suggestions */}
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="relative mt-1 w-full bg-bg-surface border border-border-subtle rounded-lg shadow-lg p-1 z-50">
+                    {suggestions.map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => addTagWithColor(s, globalTagColors[s])}
+                        className="w-full text-left text-sm px-3 py-1.5 rounded-md hover:bg-bg-hover transition-colors text-text-primary"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Delete */}
+              <div className="mt-auto pt-4 border-t border-border-subtle">
+                <button
+                  onClick={handleDelete}
+                  className="w-full text-xs text-semantic-error hover:bg-accent-lighter py-2 rounded-lg transition-colors"
+                >
+                  Delete note
+                </button>
+              </div>
+            </div>
+
+            {/* Right: content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <MarkdownEditor
+                value={text}
+                onChange={setText}
+                onBlur={() => commit()}
+              />
+            </div>
           </div>
-        </div>
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
   );
 }

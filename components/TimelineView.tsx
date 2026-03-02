@@ -125,7 +125,7 @@ function NoteCard({
       exit={{ opacity: 0, scale: 0.97 }}
       transition={{ duration: 0.2, delay: index * 0.03 }}
       onClick={() => onEdit(note)}
-      className="group relative cursor-pointer rounded-xl border border-border bg-surface hover:border-brand/40 hover:shadow-lg hover:shadow-black/30 transition-all duration-200 overflow-hidden"
+      className="group relative cursor-pointer rounded-xl border border-border bg-bg-elevated hover:border-brand/40 hover:shadow-lg hover:shadow-black/30 transition-all duration-200 overflow-hidden"
     >
       {/* Type accent line */}
       <div className="absolute left-0 inset-y-0 w-[3px] bg-slate-500/50 group-hover:bg-brand transition-colors" />
@@ -199,7 +199,7 @@ function TaskCard({
       exit={{ opacity: 0, scale: 0.97 }}
       transition={{ duration: 0.2, delay: index * 0.03 }}
       onClick={() => onEditTask(task)}
-      className="group relative cursor-pointer rounded-xl border border-border bg-surface hover:border-brand/40 hover:shadow-lg hover:shadow-black/30 transition-all duration-200 overflow-hidden"
+      className="group relative cursor-pointer rounded-xl border border-border bg-bg-elevated hover:border-brand/40 hover:shadow-lg hover:shadow-black/30 transition-all duration-200 overflow-hidden"
     >
       {/* Type accent line */}
       <div className="absolute left-0 inset-y-0 w-[3px] bg-brand/50 group-hover:bg-brand transition-colors" />

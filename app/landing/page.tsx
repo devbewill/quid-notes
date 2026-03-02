@@ -95,8 +95,8 @@ export default function LandingPage() {
                   <span className="text-zinc-500">{">"}</span> ERROR: FOLDER_HIERARCHY_OBSOLETE
                 </p>
                 <p className="text-lg text-zinc-400 leading-relaxed">
-                  For the last thirty years we've been taught to organize our work by boxing it: in files, inside folders, inside drives.
-                  But the human brain doesn't think in isolated compartments. It thinks in <strong className="text-white">Connections</strong>, associations, and contexts. Old hierarchical taxonomies force you to break your creative flow just to decide "where to save" the next document.
+                  For the last thirty years we&apos;ve been taught to organize our work by boxing it: in files, inside folders, inside drives.
+                  But the human brain doesn&apos;t think in isolated compartments. It thinks in <strong className="text-white">Connections</strong>, associations, and contexts. Old hierarchical taxonomies force you to break your creative flow just to decide &quot;where to save&quot; the next document.
                 </p>
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function LandingPage() {
                 </div>
                 <p className="text-zinc-400 leading-relaxed mb-8">
                   Your flow should never stop to fill out a task form. While writing in pure Markdown during a meeting, you simply highlight a paragraph to transform it mathematically into an <strong className="text-orange-500">EXECUTABLE TASK</strong>.
-                  This task stays indissolubly linked to the original note, always allowing you to trace back to "why" you're doing it.
+                  This task stays indissolubly linked to the original note, always allowing you to trace back to &quot;why&quot; you&apos;re doing it.
                 </p>
               </div>
 

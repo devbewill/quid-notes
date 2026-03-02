@@ -1,33 +1,43 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "./ThemeProvider";
-import { Sun, Moon } from "lucide-react";
+import { cn } from "@/lib/cn";
 
-export function ThemeToggle() {
+interface ThemeToggleProps {
+  expanded?: boolean;
+}
+
+export function ThemeToggle({ expanded = true }: ThemeToggleProps) {
   const { theme, toggleTheme } = useTheme();
 
   return (
     <button
       onClick={toggleTheme}
-      className="relative flex items-center justify-between w-full px-4 py-2 hover:bg-surface transition-colors group"
+      className={cn(
+        "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sm font-semibold",
+        "text-text-secondary hover:text-text-primary hover:bg-bg-hover"
+      )}
       aria-label="Toggle theme"
     >
-      <div className="flex items-center gap-3">
-        <div className="relative w-8 h-4 bg-border rounded-full p-0.5 transition-colors group-hover:bg-zinc-700">
-          <motion.div
-            animate={{ x: theme === "light" ? 16 : 0 }}
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            className={`w-3 h-3 rounded-full ${theme === "light" ? "bg-accent" : "bg-text"}`}
-          />
-        </div>
-        <span className="text-sm text-text font-medium uppercase tracking-tight">
-          {theme === "light" ? "Light" : "Dark"}
-        </span>
+      <div className="relative w-8 h-4 bg-bg-elevated border border-border-subtle rounded-full p-0.5">
+        <motion.div
+          animate={{ x: theme === "light" ? 16 : 0 }}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          className="w-3 h-3 rounded-full bg-accent-primary"
+        />
       </div>
-      <div className="text-muted group-hover:text-text transition-colors">
-        {theme === "light" ? <Sun size={14} /> : <Moon size={14} />}
-      </div>
+      <AnimatePresence>
+        {expanded && (
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-text-primary"
+          >
+            {theme === "light" ? "Light" : "Dark"}
+          </motion.span>
+        )}
+      </AnimatePresence>
     </button>
   );
 }

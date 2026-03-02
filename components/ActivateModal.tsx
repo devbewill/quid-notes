@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useAction, useQuery } from "convex/react";
 import { motion } from "framer-motion";
 import { api } from "@/convex/_generated/api";
@@ -34,6 +34,15 @@ export function ActivateModal({ selectedNoteIds, onClose }: ActivateModalProps) 
     (topNotes as NoteDoc[] | undefined)?.filter((n) =>
       selectedNoteIds.includes(n._id as Id<"notes">)
     ) ?? [];
+
+  // Initialize taskText with note text when 1 note selected
+  useEffect(() => {
+    if (selectedNotes.length === 1) {
+      setTaskText(selectedNotes[0].text);
+    } else {
+      setTaskText("");
+    }
+  }, [selectedNotes]);
 
   const handleAnalyze = async () => {
     setAnalyzing(true);
@@ -78,22 +87,22 @@ export function ActivateModal({ selectedNoteIds, onClose }: ActivateModalProps) 
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.96 }}
         transition={{ duration: 0.18 }}
-        className="bg-surface border border-border rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl"
+        className="relative bg-bg-surface border border-border-subtle rounded-2xl p-8 w-full max-w-md mx-4 shadow-lg"
       >
-        <h2 className="text-lg font-semibold tracking-tight mb-6">
+        <h2 className="text-lg font-semibold tracking-tight mb-6 text-text-primary">
           ⚡ {t("activate_modal_title")}
         </h2>
 
         {/* Tab switcher */}
-        <div className="flex gap-1 mb-6 bg-bg rounded-lg p-1">
+        <div className="flex gap-1 mb-6 bg-bg-elevated rounded-lg p-1">
           {(["manual", "ai"] as Tab[]).map((tabKey) => (
             <button
               key={tabKey}
               onClick={() => setTab(tabKey)}
               className={`flex-1 text-sm py-1.5 rounded-md transition-colors ${
                 tab === tabKey
-                  ? "bg-surface text-text font-medium"
-                  : "text-muted hover:text-text"
+                  ? "bg-bg-surface text-text-primary font-medium"
+                  : "text-text-muted hover:text-text-primary"
               }`}
             >
               {tabKey === "manual" ? t("activate_tab_manual") : t("activate_tab_ai")}
@@ -110,17 +119,14 @@ export function ActivateModal({ selectedNoteIds, onClose }: ActivateModalProps) 
               placeholder={t("activate_task_title_placeholder")}
               required
               autoFocus
-              className="bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-muted outline-none focus:border-accent transition-colors"
+              className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent-primary transition-colors"
             />
             <textarea
               value={taskText}
               onChange={(e) => setTaskText(e.target.value)}
               placeholder={t("activate_task_desc_placeholder")}
               rows={3}
-              defaultValue={
-                selectedNotes.length === 1 ? selectedNotes[0].text : ""
-              }
-              className="bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-muted outline-none resize-none"
+              className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none resize-none"
             />
           </div>
         )}
@@ -130,14 +136,14 @@ export function ActivateModal({ selectedNoteIds, onClose }: ActivateModalProps) 
           <div className="flex flex-col gap-4">
             {/* Selected note chips */}
             <div>
-              <p className="text-xs text-muted uppercase tracking-widest mb-2">
+              <p className="text-xs text-text-muted uppercase tracking-widest mb-2">
                 {t("activate_ai_hint")}
               </p>
               <div className="flex flex-wrap gap-2">
                 {selectedNotes.map((n) => (
                   <span
                     key={n._id}
-                    className="text-xs bg-bg border border-border rounded-full px-3 py-1 text-text"
+                    className="text-xs bg-bg-elevated border border-border-subtle rounded-full px-3 py-1 text-text-primary"
                   >
                     {n.title}
                   </span>
@@ -150,7 +156,7 @@ export function ActivateModal({ selectedNoteIds, onClose }: ActivateModalProps) 
               <button
                 onClick={handleAnalyze}
                 disabled={analyzing}
-                className="text-sm font-medium bg-surface border border-border rounded-lg py-2 text-text hover:border-accent transition-colors disabled:opacity-50"
+                className="text-sm font-medium bg-bg-surface border border-border-subtle rounded-lg py-2 text-text-primary hover:border-accent-primary transition-colors disabled:opacity-50"
               >
                 {analyzing ? t("activate_analyzing") : t("activate_analyze")}
               </button>
@@ -159,7 +165,7 @@ export function ActivateModal({ selectedNoteIds, onClose }: ActivateModalProps) 
             {/* Proposal cards */}
             {proposals.length > 0 && (
               <div className="flex flex-col gap-2">
-                <p className="text-xs text-muted uppercase tracking-widest">
+                <p className="text-xs text-text-muted uppercase tracking-widest">
                   {t("activate_ai_pick")}
                 </p>
                 {proposals.map((p, i) => (
@@ -168,8 +174,8 @@ export function ActivateModal({ selectedNoteIds, onClose }: ActivateModalProps) 
                     onClick={() => setTaskTitle(p)}
                     className={`text-left text-sm px-4 py-2.5 rounded-lg border transition-colors ${
                       taskTitle === p
-                        ? "border-accent text-text bg-bg"
-                        : "border-border text-muted hover:border-border hover:text-text"
+                        ? "border-accent-primary text-text-primary bg-bg-elevated"
+                        : "border-border-subtle text-text-muted hover:border-border-default hover:text-text-primary"
                     }`}
                   >
                     {p}
@@ -184,7 +190,7 @@ export function ActivateModal({ selectedNoteIds, onClose }: ActivateModalProps) 
                 value={taskTitle}
                 onChange={(e) => setTaskTitle(e.target.value)}
                 placeholder={t("activate_task_title_placeholder")}
-                className="bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-muted outline-none focus:border-accent transition-colors"
+                className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent-primary transition-colors"
               />
             )}
           </div>
@@ -192,21 +198,21 @@ export function ActivateModal({ selectedNoteIds, onClose }: ActivateModalProps) 
 
         {/* Error */}
         {error && (
-          <p className="mt-3 text-xs text-red-400">{error}</p>
+          <p className="mt-3 text-xs text-semantic-error">{error}</p>
         )}
 
         {/* Actions */}
         <div className="flex justify-end gap-3 mt-6">
           <button
             onClick={onClose}
-            className="text-sm text-muted hover:text-text transition-colors px-3"
+            className="text-sm text-text-muted hover:text-text-primary transition-colors px-3"
           >
             {t("activate_clear")}
           </button>
           <button
             onClick={handleCreate}
             disabled={!taskTitle.trim() || creating}
-            className="text-sm font-semibold bg-accent text-bg rounded-full px-5 py-1.5 disabled:opacity-40 hover:opacity-90 transition-opacity"
+            className="text-sm font-semibold bg-accent-primary text-text-inverse rounded-full px-5 py-1.5 disabled:opacity-40 hover:bg-accent-secondary transition-colors"
           >
             {creating ? "…" : t("activate_create_task")}
           </button>

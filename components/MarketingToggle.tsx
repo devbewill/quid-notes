@@ -18,22 +18,22 @@ export function MarketingToggle() {
   return (
     <button
       onClick={() => updateMarketing({ marketingConsent: !enabled })}
-      className="relative flex items-center justify-between w-full px-4 py-2 hover:bg-surface transition-colors group"
+      className="flex items-center justify-between w-full py-2 px-4 hover:bg-bg-hover transition-colors"
       aria-label="Toggle marketing emails"
     >
       <div className="flex items-center gap-3">
-        <div className="relative w-8 h-4 bg-border rounded-full p-0.5 transition-colors group-hover:bg-zinc-700">
+        <div className="relative w-8 h-4 bg-bg-elevated border border-border-subtle rounded-full p-0.5">
           <motion.div
             animate={{ x: enabled ? 16 : 0 }}
             transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            className={`w-3 h-3 rounded-full ${enabled ? "bg-accent" : "bg-text"}`}
+            className={`w-3 h-3 rounded-full ${enabled ? "bg-accent-primary" : "bg-text-muted"}`}
           />
         </div>
-        <span className="text-sm text-text font-medium uppercase tracking-tight">
+        <span className="text-sm text-text-primary font-medium">
           {enabled ? t("account_marketing_enabled") : t("account_marketing_disabled")}
         </span>
       </div>
-      <div className="text-muted group-hover:text-text transition-colors">
+      <div className="text-text-muted hover:text-text-primary transition-colors">
         <Mail size={14} />
       </div>
     </button>

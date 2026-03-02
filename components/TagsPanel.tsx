@@ -53,9 +53,9 @@ export function TagsPanel({ globalTagColors, onClose }: Props) {
         transition={{ duration: 0.18 }}
         className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
       >
-        <div className="pointer-events-auto w-full max-w-sm bg-surface border border-border rounded-xl shadow-2xl overflow-hidden flex flex-col">
+        <div className="pointer-events-auto w-full max-w-sm bg-surface border border-border-subtle rounded-xl shadow-2xl overflow-hidden flex flex-col">
           {/* Header */}
-          <div className="flex items-center gap-3 px-5 py-4 border-b border-border">
+          <div className="flex items-center gap-3 px-5 py-4 border-b border-border-subtle">
             <svg className="w-4 h-4 text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
             </svg>
@@ -75,7 +75,7 @@ export function TagsPanel({ globalTagColors, onClose }: Props) {
           <div className="overflow-y-auto max-h-96">
             {tags.length === 0 ? (
               <div className="py-12 flex flex-col items-center gap-3 text-center px-6">
-                <div className="w-10 h-10 rounded-xl bg-bg border border-border flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-bg border border-border-subtle flex items-center justify-center">
                   <svg className="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
                   </svg>
@@ -128,7 +128,7 @@ export function TagsPanel({ globalTagColors, onClose }: Props) {
 
           {/* Footer hint */}
           {tags.length > 0 && (
-            <div className="px-5 py-3 border-t border-border">
+            <div className="px-5 py-3 border-t border-border-subtle">
               <p className="text-[10px] text-muted">Click the colored circle to change the color. The change is applied to all notes using that tag.</p>
             </div>
           )}

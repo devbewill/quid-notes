@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import { cn } from "@/lib/cn";
 import { useMemo, useState } from "react";
-import type { NoteDoc, TaskDoc } from "@/lib/types";
+import type { Id } from "@/convex/_generated/dataModel";
 
 export function TrashView() {
   const trashedNotes = useQuery(api.notes.listTrashed);
@@ -35,9 +35,9 @@ export function TrashView() {
     setLoadingIds((prev) => new Set(prev).add(item._id));
     try {
       if (item._kind === "note") {
-        await restoreNote({ noteId: item._id as any });
+        await restoreNote({ noteId: item._id as Id<"notes"> });
       } else {
-        await restoreTask({ taskId: item._id as any });
+        await restoreTask({ taskId: item._id as Id<"tasks"> });
       }
     } finally {
       setLoadingIds((prev) => {
@@ -53,9 +53,9 @@ export function TrashView() {
     setLoadingIds((prev) => new Set(prev).add(item._id));
     try {
       if (item._kind === "note") {
-        await removeNote({ noteId: item._id as any });
+        await removeNote({ noteId: item._id as Id<"notes"> });
       } else {
-        await removeTask({ taskId: item._id as any });
+        await removeTask({ taskId: item._id as Id<"tasks"> });
       }
     } finally {
       setLoadingIds((prev) => {

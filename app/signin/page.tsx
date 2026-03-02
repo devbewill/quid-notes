@@ -78,7 +78,7 @@ export default function SignInPage() {
         <div className="w-full max-w-sm text-center">
           <h1 className="text-2xl font-semibold tracking-tight mb-2">Account in Eliminazione</h1>
           <p className="text-sm text-muted mb-8">
-            Il tuo account è attualmente programmato per l'eliminazione definitiva il{" "}
+            Il tuo account è attualmente programmato per l&apos;eliminazione definitiva il{" "}
             <span className="text-text font-medium">
               {deletionStatus.deletionScheduledAt ? new Date(deletionStatus.deletionScheduledAt).toLocaleDateString() : "presto"}
             </span>.

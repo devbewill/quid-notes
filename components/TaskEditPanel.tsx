@@ -2,15 +2,16 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/convex/_generated/api";
-import type { TaskDoc } from "@/lib/types";
+import type { TaskDoc, NoteDoc } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { MarkdownEditor } from "@/components/MarkdownEditor";
 
 interface Props {
   task: TaskDoc;
   onClose: () => void;
+  onEditNote?: (note: NoteDoc) => void;
 }
 
 function tsToDate(ts?: number) {
@@ -21,7 +22,7 @@ function dateToTs(val: string): number | undefined {
   return val ? new Date(val).getTime() : undefined;
 }
 
-export function TaskEditPanel({ task, onClose }: Props) {
+export function TaskEditPanel({ task, onClose, onEditNote }: Props) {
   const update = useMutation(api.tasks.update);
   const deleteTask = useMutation(api.tasks.deleteAndRestoreNotes);
   const togglePin = useMutation(api.tasks.togglePin);
@@ -56,6 +57,7 @@ export function TaskEditPanel({ task, onClose }: Props) {
 
   const handleClose = () => { commit(); onClose(); };
 
+  // Keep a stable ref so that ESC listener always calls latest handleClose
   const handleCloseRef = useRef(handleClose);
   useEffect(() => { handleCloseRef.current = handleClose; });
 
@@ -73,164 +75,163 @@ export function TaskEditPanel({ task, onClose }: Props) {
   const statusLabel = { idle: "To Do", active: "In Progress", completed: "Completed" };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center p-6">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60" onClick={handleClose} />
+    <AnimatePresence>
+      <div className="fixed inset-0 z-40 flex items-center justify-center p-6">
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          className="absolute inset-0 bg-black/60"
+          onClick={handleClose}
+        />
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.96 }}
-        transition={{ duration: 0.18 }}
-        className="relative z-10 w-full max-w-4xl min-w-[55%] h-[72vh] bg-surface border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden"
-      >
-        {/* Header */}
-        <div className="flex items-start gap-3 px-6 py-4 border-b border-border">
-          <span className="text-xs px-2 py-0.5 rounded-full bg-brand/25 text-brand ring-1 ring-brand/30 font-medium shrink-0 mt-1">
-            TASK
-          </span>
-          <div className="flex-1 min-w-0">
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onBlur={() => commit()}
-              placeholder="Add tag..."
-              className="w-full text-lg font-semibold bg-transparent outline-none text-text placeholder:text-muted border-none"
-            />
-            <h4 className="text-[10px] uppercase tracking-wider font-bold text-muted mb-4 px-1">Details</h4>
-            <p className="text-[10px] text-muted mt-0.5 tabular-nums">
-              Modified {new Date(displayTask.updatedAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}
-            </p>
-          </div>
-          <div className="flex items-center gap-1 shrink-0 mt-0.5">
-            <button
-              onClick={() => togglePin({ taskId: task._id })}
-              className={cn("p-1.5 rounded-md transition-colors", displayTask.isPinned ? "text-amber-500 bg-amber-500/10 hover:bg-amber-500/20" : "text-muted hover:text-text hover:bg-surface/60")}
-              title={displayTask.isPinned ? "Remove from pinned" : "Pin to top"}
-            >
-              <svg className={cn("w-4 h-4", displayTask.isPinned && "fill-amber-500")} viewBox="0 0 20 20" stroke="currentColor" fill="none">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={displayTask.isPinned ? 0 : 1.5} d={displayTask.isPinned ? "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" : "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"} />
-              </svg>
-            </button>
-            <button
-              onClick={handleClose}
-              className="p-1 text-muted hover:text-text text-2xl leading-none transition-colors"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-
-        {/* Body — two columns */}
-        <div className="flex-1 overflow-hidden flex">
-          {/* Left: meta */}
-          <div className="w-56 shrink-0 border-r border-border p-5 flex flex-col gap-5 overflow-y-auto">
-            {/* Status */}
-            <div className="flex flex-col gap-1.5">
-              <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                Status
-              </label>
-              <select
-                value={status}
-                onChange={(e) => {
-                  const s = e.target.value as "idle" | "active" | "completed";
-                  setStatus(s);
-                  commit({ status: s });
-                }}
-                className="bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text outline-none focus:border-accent transition-colors"
-              >
-                <option value="idle">To Do</option>
-                <option value="active">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
-            </div>
-
-            {/* Start date */}
-            <div className="flex flex-col gap-1.5">
-              <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-                Start Date
-              </label>
+        {/* Modal */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.96 }}
+          transition={{ duration: 0.18 }}
+          className="relative z-10 w-3/5 max-w-5xl min-w-[60%] h-[72vh] bg-bg-surface border border-border-subtle rounded-lg shadow-lg flex flex-col overflow-hidden"
+        >
+          {/* Header */}
+          <div className="flex items-start gap-3 px-6 py-4 border-b border-border-subtle">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-accent-lighter text-accent-primary ring-1 ring-accent-primary/30 font-medium shrink-0 mt-1">
+              TASK
+            </span>
+            <div className="flex-1 min-w-0">
               <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 onBlur={() => commit()}
-                className="bg-bg border border-border rounded-lg px-2 py-1.5 text-xs text-text outline-none focus:border-accent transition-colors"
+                placeholder="Task title…"
+                className="w-full text-lg font-semibold bg-transparent outline-none text-text-primary placeholder:text-text-muted border-none"
               />
+              <h4 className="text-[10px] uppercase tracking-wider font-bold text-text-muted mb-4 px-1">Details</h4>
+              <p className="text-[10px] text-text-muted mt-0.5 tabular-nums">
+                Modified {new Date(displayTask.updatedAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}
+              </p>
             </div>
-
-            {/* Due date */}
-            <div className="flex flex-col gap-1.5">
-              <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                Due Date
-              </label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                onBlur={() => commit()}
-                className="bg-bg border border-border rounded-lg px-2 py-1.5 text-xs text-text outline-none focus:border-accent transition-colors"
-              />
-            </div>
-
-            {/* Linked notes */}
-            {linkedNotes && linkedNotes.length > 0 && (
-              <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-1.5 text-xs text-muted uppercase tracking-widest">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" /></svg>
-                  Linked Notes ({linkedNotes.length})
-                </label>
-                <div className="flex flex-col gap-1.5">
-                  {linkedNotes.map((note) => (
-                    <div
-                      key={note._id}
-                      className="flex items-center gap-2 text-xs px-2 py-1.5 rounded-md bg-bg border border-border text-text"
-                    >
-                      <svg className="w-3.5 h-3.5 text-muted/60 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zM15 12h-3m3 3h-3m3 3h-3" />
-                      </svg>
-                      <span className="font-medium truncate flex-1">{note.title}</span>
-                      <span
-                        className={`inline-block text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                          note.status === "completed"
-                            ? "bg-emerald-500/20 dark:text-emerald-300 light:bg-emerald-600 light:text-white"
-                            : note.status === "active"
-                            ? "bg-sky-500/20 dark:text-sky-300 light:bg-sky-600 light:text-white"
-                            : "bg-rose-500/20 dark:text-rose-300 light:bg-rose-600 light:text-white"
-                        }`}
-                      >
-                        {statusLabel[note.status]}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Delete */}
-            <div className="mt-auto pt-4 border-t border-border">
+            <div className="flex items-center gap-1 shrink-0 mt-0.5">
               <button
-                onClick={handleDelete}
-                className="text-xs text-rose-400 hover:text-rose-300 transition-colors"
+                onClick={() => togglePin({ taskId: task._id })}
+                className={cn("p-1.5 rounded-md transition-colors", displayTask.isPinned ? "text-semantic-warning bg-accent-lighter hover:bg-accent-light" : "text-text-muted hover:text-text-primary hover:bg-bg-hover")}
+                title={displayTask.isPinned ? "Remove from pinned" : "Pin to top"}
               >
-                Delete task
+                <svg className={cn("w-4 h-4", displayTask.isPinned && "fill-semantic-warning")} viewBox="0 0 20 20" stroke="currentColor" fill="none">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={displayTask.isPinned ? 0 : 1.5} d={displayTask.isPinned ? "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" : "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"} />
+                </svg>
+              </button>
+              <button
+                onClick={handleClose}
+                className="p-1 text-text-muted hover:text-text-primary text-2xl leading-none transition-colors"
+              >
+                ×
               </button>
             </div>
           </div>
 
-          {/* Right: description */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <MarkdownEditor
-              value={text}
-              onChange={setText}
-              onBlur={() => commit()}
-            />
+          {/* Body — two columns */}
+          <div className="flex-1 overflow-hidden flex">
+            {/* Left: meta */}
+            <div className="w-56 shrink-0 border-r border-border-subtle p-5 flex flex-col gap-5 overflow-y-auto">
+              {/* Status */}
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                  Status
+                </label>
+                <select
+                  value={status}
+                  onChange={(e) => {
+                    const s = e.target.value as "idle" | "active" | "completed";
+                    setStatus(s);
+                    commit({ status: s });
+                  }}
+                  className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-colors"
+                >
+                  <option value="idle">To Do</option>
+                  <option value="active">In Progress</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+
+              {/* Start date */}
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.2.0 0 0 21 18.75m-18 0v-7.5A2.25 2.2.0 0 0 5.25 9h13.5A2.25 2.2 0 0 0 21 11.25v7.5" /></svg>
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-colors"
+                />
+              </div>
+
+              {/* Due date */}
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 0 21 11.25v7.5" /></svg>
+                  Due Date
+                </label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-colors"
+                />
+              </div>
+
+              {/* Linked Notes */}
+              {linkedNotes && linkedNotes.length > 0 && onEditNote && (
+                <div className="flex flex-col gap-2 mt-2 pt-4 border-t border-border-subtle">
+                  <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                    Linked Notes
+                  </label>
+                  <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
+                    {linkedNotes.map((note) => (
+                      <button
+                        key={note._id}
+                        onClick={() => {
+                          onClose();
+                          onEditNote(note as NoteDoc);
+                        }}
+                        className="text-left text-sm px-3 py-2 rounded-md hover:bg-bg-hover transition-colors text-text-primary border border-transparent hover:border-border-subtle truncate"
+                        title={note.title || "Untitled"}
+                      >
+                        {note.title || "Untitled"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Delete */}
+              <div className="mt-auto pt-4 border-t border-border-subtle">
+                <button
+                  onClick={handleDelete}
+                  className="w-full text-xs text-semantic-error hover:bg-accent-lighter py-2 rounded-lg transition-colors"
+                >
+                  Delete task
+                </button>
+              </div>
+            </div>
+
+            {/* Right: content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <MarkdownEditor
+                value={text}
+                onChange={setText}
+                onBlur={() => commit()}
+              />
+            </div>
           </div>
-        </div>
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
   );
 }

@@ -29,13 +29,13 @@ type SortState = { col: SortCol; dir: SortDir } | null;
 // ─── Status badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: "idle" | "active" | "completed" }) {
   const map = {
-    idle: "bg-rose-500/25 text-rose-400 ring-rose-400/30 dark:text-rose-300 light:bg-rose-600 light:text-white",
-    active: "bg-sky-500/25 text-sky-400 ring-sky-400/30 dark:text-sky-300 light:bg-sky-600 light:text-white",
-    completed: "bg-emerald-500/25 text-emerald-400 ring-emerald-400/30 dark:text-emerald-300 light:bg-emerald-600 light:text-white",
+    idle: "bg-semantic-error/10 text-semantic-error",
+    active: "bg-semantic-warning/10 text-semantic-warning",
+    completed: "bg-semantic-success/10 text-semantic-success",
   } as const;
-  const label = { idle: "To Do", active: "In Progress", completed: "Completed" };
+  const label = { idle: "To Do", active: "Active", completed: "Done" };
   return (
-    <span className={cn("text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ring-1 ring-transparent transition-colors", map[status])}>
+    <span className={cn("text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider", map[status])}>
       {label[status]}
     </span>
   );
@@ -43,10 +43,10 @@ function StatusBadge({ status }: { status: "idle" | "active" | "completed" }) {
 
 // ─── Date cell ────────────────────────────────────────────────────────────────
 function DateCell({ ts, overdue }: { ts?: number; overdue?: boolean }) {
-  if (!ts) return <span className="text-muted text-xs">—</span>;
+  if (!ts) return <span className="text-text-muted text-xs">—</span>;
   return (
-    <span className={cn("text-xs tabular-nums flex items-center gap-1", overdue ? "text-rose-400 font-medium" : "text-muted")}>
-      {overdue && <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse shrink-0" />}
+    <span className={cn("text-xs tabular-nums flex items-center gap-1", overdue ? "text-semantic-error font-medium" : "text-text-muted")}>
+      {overdue && <span className="w-1.5 h-1.5 rounded-full bg-semantic-error shrink-0" />}
       {new Date(ts).toLocaleDateString("en-US", { day: "2-digit", month: "short" })}
     </span>
   );
@@ -56,7 +56,7 @@ function DateCell({ ts, overdue }: { ts?: number; overdue?: boolean }) {
 // ─── Tags cell ────────────────────────────────────────────────────────────────
 type TagColorEntry = { name: string; color: string };
 function TagsCell({ tags, tagColors }: { tags?: string[]; tagColors?: TagColorEntry[] }) {
-  if (!tags || tags.length === 0) return <span className="text-muted text-xs">—</span>;
+  if (!tags || tags.length === 0) return <span className="text-text-muted text-xs">—</span>;
   const colorMap = Object.fromEntries((tagColors ?? []).map((e) => [e.name, e.color]));
   return (
     <div className="flex gap-1 flex-wrap">
@@ -65,13 +65,13 @@ function TagsCell({ tags, tagColors }: { tags?: string[]; tagColors?: TagColorEn
         return c ? (
           <span
             key={t}
-            className="text-xs px-1.5 py-0.5 rounded font-medium"
-            style={{ background: `${c}28`, color: c, boxShadow: `0 0 0 1px ${c}44` }}
+            className="text-[10px] px-2 py-0.5 rounded-md font-medium text-text-inverse"
+            style={{ backgroundColor: c }}
           >
             {t}
           </span>
         ) : (
-          <span key={t} className="text-xs px-1.5 py-0.5 rounded bg-brand/20 dark:text-brand light:bg-brand light:text-brand-text ring-1 ring-brand-ring font-medium">
+          <span key={t} className="text-[10px] px-2 py-0.5 rounded-md font-medium text-text-inverse bg-accent-primary">
             {t}
           </span>
         );
@@ -86,13 +86,13 @@ const SKELETON_WIDTHS = [160, 120, 180, 140, 200, 130, 170];
 function SkeletonRow({ index }: { index: number }) {
   const w = SKELETON_WIDTHS[index % SKELETON_WIDTHS.length];
   return (
-    <tr className="border-b border-border">
-      <td className="w-10 pl-3 py-3.5"><div className="w-4 h-4 rounded bg-border/40 animate-pulse" /></td>
-      <td className="w-8 py-3.5"><div className="w-4 h-4 rounded bg-border/40 animate-pulse" /></td>
-      <td className="pr-4 py-3.5"><div className="h-2.5 bg-border/40 rounded animate-pulse" style={{ width: w }} /></td>
-      <td className="pr-4"><div className="h-5 bg-border/40 rounded-full animate-pulse w-20" /></td>
-      <td className="pr-4"><div className="h-2.5 bg-border/40 rounded animate-pulse w-14" /></td>
-      <td className="pr-4"><div className="h-2.5 bg-border/40 rounded animate-pulse w-14" /></td>
+    <tr className="border-b border-border-subtle">
+      <td className="w-10 pl-3 py-3.5"><div className="w-4 h-4 rounded bg-bg-surface animate-pulse" /></td>
+      <td className="w-8 py-3.5"><div className="w-4 h-4 rounded bg-bg-surface animate-pulse" /></td>
+      <td className="pr-4 py-3.5"><div className="h-2.5 bg-bg-surface rounded animate-pulse" style={{ width: w }} /></td>
+      <td className="pr-4"><div className="h-5 bg-bg-surface rounded-full animate-pulse w-20" /></td>
+      <td className="pr-4"><div className="h-2.5 bg-bg-surface rounded animate-pulse w-14" /></td>
+      <td className="pr-4"><div className="h-2.5 bg-bg-surface rounded animate-pulse w-14" /></td>
       <td className="pr-4" />
     </tr>
   );
@@ -103,16 +103,16 @@ function EmptyState({ hasSearch }: { hasSearch: boolean }) {
   return (
     <tr><td colSpan={7}>
       <div className="py-16 flex flex-col items-center gap-4 text-center">
-        <div className="w-12 h-12 rounded-xl bg-surface border border-border flex items-center justify-center">
+        <div className="w-12 h-12 rounded-lg bg-bg-elevated border border-border-subtle flex items-center justify-center">
           {hasSearch ? (
-            <svg className="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+            <span className="text-2xl">🔍</span>
           ) : (
-            <svg className="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+            <span className="text-2xl">📝</span>
           )}
         </div>
         <div>
-          <p className="text-sm text-text font-medium">{hasSearch ? "No results" : "No notes yet"}</p>
-          <p className="text-xs text-muted mt-1">{hasSearch ? "Try different keywords" : "Create your first note with the \"+ New\" button"}</p>
+          <p className="text-sm text-text-primary font-medium">{hasSearch ? "No results" : "No notes yet"}</p>
+          <p className="text-xs text-text-muted mt-1">{hasSearch ? "Try different keywords" : "Create your first note with \"New\" button"}</p>
         </div>
       </div>
     </td></tr>
@@ -139,14 +139,14 @@ function SortTh({
     <th
       onClick={() => onSort(col)}
       className={cn(
-        "text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4 cursor-pointer select-none whitespace-nowrap",
-        "hover:text-text transition-colors group",
+        "text-left text-xs text-text-muted uppercase tracking-widest pb-2 pr-4 cursor-pointer select-none whitespace-nowrap",
+        "hover:text-text-secondary transition-colors group",
         className
       )}
     >
       <span className="inline-flex items-center gap-1">
         {children}
-        <span className={cn("text-[10px]", active ? "text-accent" : "text-border group-hover:text-muted")}>
+        <span className={cn("text-[10px]", active ? "text-accent-primary" : "text-border-subtle group-hover:text-text-muted")}>
           {dir === "asc" ? "↑" : dir === "desc" ? "↓" : "↕"}
         </span>
       </span>
@@ -193,42 +193,38 @@ function NoteRow({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={cn(
-        "group border-b border-border transition-colors",
-        selected ? "bg-surface/80" : "hover:bg-surface/40",
+        "group border-b border-border-subtle transition-colors",
+        selected ? "bg-accent-light" : "hover:bg-bg-hover",
         isChild && "opacity-70"
       )}
     >
       <td className="w-10 pl-3">
         {isChild ? (
-          <span className="inline-block w-4 border-l border-border ml-4" />
+          <span className="inline-block w-4 border-l border-border-default ml-4" />
         ) : (
           <input
             type="checkbox"
             checked={selected}
             onChange={(e) => { e.stopPropagation(); onSelect(note._id); }}
             className={cn(
-              "appearance-none w-[14px] h-[14px] rounded border border-muted/40 bg-surface checked:bg-brand checked:border-brand cursor-pointer transition-all relative outline-none",
-              "after:content-[''] after:hidden checked:after:block after:absolute after:left-[4px] after:top-[1px] after:w-[4px] after:h-[8px] after:border-solid after:border-brand-text after:border-b-[1.5px] after:border-r-[1.5px] after:rotate-45",
+              "appearance-none w-[14px] h-[14px] rounded border border-border-default bg-bg-surface checked:bg-accent-primary checked:border-accent-primary cursor-pointer transition-all relative outline-none",
+              "after:content-[''] after:hidden checked:after:block after:absolute after:left-[4px] after:top-[1px] after:w-[4px] after:h-[8px] after:border-solid after:border-text-inverse after:border-b-[1.5px] after:border-r-[1.5px] after:rotate-45",
               hovered || selected ? "opacity-100" : "opacity-0"
             )}
           />
         )}
       </td>
       <td className="w-8 pr-2">
-        <svg className="w-4 h-4 text-muted/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-4 h-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zM15 12h-3m3 3h-3m3 3h-3" />
         </svg>
       </td>
       <td
-        className={cn("py-3 pr-4 text-sm cursor-pointer hover:text-accent transition-colors flex items-center gap-1.5", isChild && "pl-8")}
+        className={cn("py-3 pr-4 text-sm cursor-pointer hover:text-accent-primary transition-colors flex items-center gap-1.5", isChild && "pl-8")}
         onClick={() => onEdit(note)}
       >
-        {note.isPinned && (
-          <svg className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" viewBox="0 0 20 20">
-            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-          </svg>
-        )}
-        <span className="truncate">{note.title}</span>
+        {note.isPinned && <span className="text-base text-accent-primary">📌</span>}
+        <span className="truncate text-text-primary">{note.title}</span>
       </td>
       <td className="pr-4"><StatusBadge status={note.status} /></td>
       <td className="pr-4"><DateCell ts={note.startDate} /></td>
@@ -261,20 +257,20 @@ function TaskRow({ task, onEdit, onEditTask, selected, onSelectTask }: {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         onClick={() => hasChildren && setExpanded((v) => !v)}
-        className={cn("border-b border-border transition-colors", hasChildren ? "cursor-pointer hover:bg-surface/40" : "hover:bg-surface/20")}
+        className={cn("border-b border-border-subtle transition-colors", hasChildren ? "cursor-pointer hover:bg-bg-hover" : "hover:bg-bg-hover")}
       >
         <td className="w-10 pl-3">
           <div className="flex items-center justify-center">
             {hasChildren ? (
-              <span className={cn("inline-block text-muted text-xs transition-transform", expanded && "rotate-90")}>▶</span>
+              <span className={cn("inline-block text-text-muted text-xs transition-transform", expanded && "rotate-90")}>▶</span>
             ) : (
               <input
                 type="checkbox"
                 checked={selected}
                 onChange={(e) => { e.stopPropagation(); onSelectTask(task._id); }}
                 className={cn(
-                  "appearance-none w-[14px] h-[14px] rounded border border-muted/40 bg-surface checked:bg-brand checked:border-brand cursor-pointer transition-all relative outline-none",
-                  "after:content-[''] after:hidden checked:after:block after:absolute after:left-[4px] after:top-[1px] after:w-[4px] after:h-[8px] after:border-solid after:border-brand-text after:border-b-[1.5px] after:border-r-[1.5px] after:rotate-45",
+                  "appearance-none w-[14px] h-[14px] rounded border border-border-default bg-bg-surface checked:bg-accent-primary checked:border-accent-primary cursor-pointer transition-all relative outline-none",
+                  "after:content-[''] after:hidden checked:after:block after:absolute after:left-[4px] after:top-[1px] after:w-[4px] after:h-[8px] after:border-solid after:border-text-inverse after:border-b-[1.5px] after:border-r-[1.5px] after:rotate-45",
                   hovered || selected ? "opacity-100" : "opacity-0"
                 )}
               />
@@ -282,20 +278,16 @@ function TaskRow({ task, onEdit, onEditTask, selected, onSelectTask }: {
           </div>
         </td>
         <td className="w-8 pr-2">
-          <svg className="w-4 h-4 text-brand/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-4 h-4 text-accent-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </td>
         <td
-          className="py-3 pr-4 text-sm font-medium cursor-pointer hover:text-accent transition-colors flex items-center gap-1.5"
+          className="py-3 pr-4 text-sm font-medium cursor-pointer hover:text-accent-primary transition-colors flex items-center gap-1.5"
           onClick={(e) => { e.stopPropagation(); onEditTask(task); }}
         >
-          {task.isPinned && (
-            <svg className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" viewBox="0 0 20 20">
-              <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-            </svg>
-          )}
-          <span className="truncate">{task.title}</span>
+          {task.isPinned && <span className="text-base text-accent-primary">📌</span>}
+          <span className="truncate text-text-primary">{task.title}</span>
         </td>
         <td className="pr-4"><StatusBadge status={task.status} /></td>
         <td className="pr-4"><DateCell ts={task.startDate} /></td>
@@ -388,16 +380,16 @@ export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search, ty
   if (!topNotes || !tasks) {
     return (
       <div className="overflow-x-auto">
-        <table className="w-full text-text">
+        <table className="w-full text-text-primary">
           <thead>
-            <tr className="border-b border-border">
+            <tr className="border-b border-border-subtle">
               <th className="w-10" />
               <th className="w-8" />
-              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_title")}</th>
-              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_status")}</th>
-              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_start")}</th>
-              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_due")}</th>
-              <th className="text-left text-xs text-muted uppercase tracking-widest pb-2 pr-4">Tags</th>
+              <th className="text-left text-xs text-text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_title")}</th>
+              <th className="text-left text-xs text-text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_status")}</th>
+              <th className="text-left text-xs text-text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_start")}</th>
+              <th className="text-left text-xs text-text-muted uppercase tracking-widest pb-2 pr-4">{t("feed_col_due")}</th>
+              <th className="text-left text-xs text-text-muted uppercase tracking-widest pb-2 pr-4">Tags</th>
             </tr>
           </thead>
           <tbody>
@@ -414,9 +406,9 @@ export function Feed({ selectedNoteIds, onSelect, onEdit, onEditTask, search, ty
     <div className="flex flex-col gap-2">
       {/* ── Table ─────────────────────────────────────────────────────── */}
       <div className="overflow-x-auto">
-        <table className="w-full text-text">
+        <table className="w-full text-text-primary">
           <thead>
-            <tr className="border-b border-border">
+            <tr className="border-b border-border-subtle">
               <th className="w-10" />
               <th className="w-8" />
               <SortTh col="title" sort={sort} onSort={handleSort}>{t("feed_col_title")}</SortTh>

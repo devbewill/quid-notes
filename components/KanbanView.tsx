@@ -49,20 +49,22 @@ function KanbanCard({
   const overdue = isOverdue(item.dueDate, item.status);
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.15 }}
+    <div
       draggable={true}
-      onDragStart={(e) => {
+      onDragStart={(e: React.DragEvent<HTMLDivElement>) => {
         e.dataTransfer.setData("application/json", JSON.stringify(item));
         e.dataTransfer.effectAllowed = "move";
       }}
       onClick={() => item._kind === "note" ? onEdit(item as NoteDoc) : onEditTask(item as TaskDoc)}
-      className="group cursor-pointer rounded-lg border border-border bg-surface hover:border-slate-400/30 hover:shadow-md hover:shadow-black/20 transition-all duration-150 p-3.5"
+      className="group cursor-pointer rounded-lg border border-border bg-bg-elevated hover:border-slate-400/30 hover:shadow-md hover:shadow-black/20 transition-all duration-150 p-3.5"
     >
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.15 }}
+      >
       {/* Type pill */}
       <div className="flex items-center gap-2 mb-2">
         {item.isPinned && (
@@ -122,7 +124,8 @@ function KanbanCard({
           </span>
         )}
       </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -151,8 +154,8 @@ function KanbanColumn({
   return (
     <div
       className={cn("flex-1 min-w-[260px] flex flex-col")}
-      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
-      onDrop={(e) => {
+      onDragOver={(e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
+      onDrop={(e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         const data = e.dataTransfer.getData("application/json");
         if (!data) return;
@@ -180,7 +183,7 @@ function KanbanColumn({
             <div
               key={item._id}
               draggable
-              onDragStart={(e) => {
+              onDragStart={(e: React.DragEvent<HTMLDivElement>) => {
                 e.dataTransfer.setData("application/json", JSON.stringify({ _id: item._id, _kind: item._kind }));
                 e.dataTransfer.effectAllowed = "move";
               }}
