@@ -110,10 +110,10 @@ export default function LandingPage() {
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-500 to-violet-500">Kill Creativity.</span>
               </h2>
               <p className="text-xl text-zinc-400 leading-relaxed mb-6">
-                For decades, we've forced our fluid thoughts into rigid boxes: folders, subfolders, nested structures that make sense to computers but not to human brains.
+                For decades, we&apos;ve forced our fluid thoughts into rigid boxes: folders, subfolders, nested structures that make sense to computers but not to human brains.
               </p>
               <p className="text-lg text-zinc-500 leading-relaxed">
-                Your ideas don't live in isolation. They connect, cross-reference, and evolve. Yet your tools force you to choose where each thought belongs before it even exists.
+                Your ideas don&apos;t live in isolation. They connect, cross-reference, and evolve. Yet your tools force you to choose where each thought belongs before it even exists.
               </p>
             </motion.div>
 
@@ -179,7 +179,7 @@ export default function LandingPage() {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">One Flow.</span>
             </h2>
             <p className="text-xl text-zinc-400 max-w-3xl mx-auto">
-              Notes and tasks aren't different things—they're different states of the same thought. Seamlessly transition between potential and action.
+              Notes and tasks aren&apos;t different things—they&apos;re different states of the same thought. Seamlessly transition between potential and action.
             </p>
           </motion.div>
 
@@ -231,11 +231,11 @@ export default function LandingPage() {
               Why QUID?
             </h2>
             <p className="text-2xl md:text-3xl text-zinc-400 font-medium leading-relaxed mb-6">
-              In Latin, <span className="text-white font-bold">"quid"</span> means <span className="text-fuchsia-400 font-bold">"something"</span> — the essence of a thing.
+              In Latin, <span className="text-white font-bold">&quot;quid&quot;</span> means <span className="text-fuchsia-400 font-bold">&quot;something&quot;</span> — the essence of a thing.
             </p>
             <p className="text-xl text-zinc-500 leading-relaxed max-w-3xl mx-auto">
               A name for those who value mental precision. <br/>
-              <span className="text-zinc-400">"There is a reason why you wrote this note. There is an essence — a Quid — waiting to be unleashed."</span>
+              <span className="text-zinc-400">&quot;There is a reason why you wrote this note. There is an essence — a Quid — waiting to be unleashed.&quot;</span>
             </p>
           </motion.div>
         </section>

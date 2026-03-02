@@ -40,22 +40,3 @@ export interface TaskDoc {
   updatedAt: number;
 }
 
-export interface UserDoc {
-  _id: Id<"users">;
-  _creationTime: number;
-  email: string;
-  name?: string;
-  avatarUrl?: string;
-  authProvider: "email" | "google";
-  privacyAcceptedAt: number;
-  privacyPolicyVersion: string;
-  marketingConsent: boolean;
-  marketingConsentUpdatedAt?: number;
-  registeredAt: number;
-  lastActiveAt?: number;
-  ipHash?: string;
-  userAgent?: string;
-  isDeleted: boolean;
-  deletionRequestedAt?: number;
-  deletionScheduledAt?: number;
-}

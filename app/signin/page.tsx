@@ -180,7 +180,7 @@ export default function SignInPage() {
     return (
       <div className="min-h-screen bg-[#050508] flex items-center justify-center px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(139,92,246,0.08),transparent)]" />
-        
+
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -193,7 +193,7 @@ export default function SignInPage() {
               Account in<br/>Eliminazione
             </h1>
             <p className="text-zinc-400 text-lg leading-relaxed">
-              Il tuo account è attualmente programmato per l'eliminazione definitiva il{" "}
+              Il tuo account è attualmente programmato per l&apos;eliminazione definitiva il{" "}
               <span className="text-white font-medium">
                 {deletionStatus.deletionScheduledAt ? new Date(deletionStatus.deletionScheduledAt).toLocaleDateString() : "presto"}
               </span>
@@ -244,7 +244,7 @@ export default function SignInPage() {
   return (
     <div className="min-h-screen bg-[#050508] flex items-center justify-center px-6 relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(139,92,246,0.08),transparent)]" />
-      
+
       <div className="absolute top-6 left-6">
         <Link href="/landing-page" className="text-zinc-600 hover:text-white transition-colors font-bold text-sm tracking-widest uppercase">
           ← Torna alla Landing
@@ -342,7 +342,7 @@ export default function SignInPage() {
                   <span className="text-red-500"> *</span>
                 </span>
               </label>
-              
+
               <label className="flex items-start gap-3 text-sm text-zinc-400 cursor-pointer group">
                 <input
                   type="checkbox"
