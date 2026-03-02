@@ -60,6 +60,13 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Redirect to signin if not authenticated and not loading
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/signin");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
   const uniqueTags = useMemo(() => {
     if (!sidebarNotes) return [];
     const set = new Set<string>();
@@ -150,7 +157,14 @@ export default function Home() {
   };
 
   if (isLoading || !isAuthenticated || user === undefined) {
-    return null;
+    return (
+      <div className="min-h-screen bg-[#050508] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6">
+          <div className="w-12 h-12 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-zinc-400 font-mono text-sm">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
