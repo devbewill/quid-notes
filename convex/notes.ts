@@ -1,12 +1,13 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuth } from "./lib/auth";
+import { requireAuth, getAuthUserOrNull } from "./lib/auth";
 
 /** Top-level notes: parentTaskId is absent (undefined). */
 export const listTopLevel = query({
   args: {},
   handler: async (ctx) => {
-    const user = await requireAuth(ctx);
+    const user = await getAuthUserOrNull(ctx);
+    if (!user) return [];
     return ctx.db
       .query("notes")
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,7 +24,8 @@ export const listTopLevel = query({
 export const listByTask = query({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
-    const user = await requireAuth(ctx);
+    const user = await getAuthUserOrNull(ctx);
+    if (!user) return [];
     return ctx.db
       .query("notes")
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -153,7 +155,8 @@ export const restore = mutation({
 export const listTrashed = query({
   args: {},
   handler: async (ctx) => {
-    const user = await requireAuth(ctx);
+    const user = await getAuthUserOrNull(ctx);
+    if (!user) return [];
     return ctx.db
       .query("notes")
       .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
@@ -167,7 +170,8 @@ export const listTrashed = query({
 export const get = query({
   args: { noteId: v.id("notes") },
   handler: async (ctx, args) => {
-    const user = await requireAuth(ctx);
+    const user = await getAuthUserOrNull(ctx);
+    if (!user) return null;
     const note = await ctx.db.get(args.noteId);
     if (!note || note.ownerId !== user._id) return null;
     return note;

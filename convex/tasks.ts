@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAuth } from "./lib/auth";
+import { requireAuth, getAuthUserOrNull } from "./lib/auth";
 
 /** Create a standalone task directly (no linked notes). */
 export const createDirect = mutation({
@@ -32,7 +32,8 @@ export const createDirect = mutation({
 export const listAll = query({
   args: {},
   handler: async (ctx) => {
-    const user = await requireAuth(ctx);
+    const user = await getAuthUserOrNull(ctx);
+    if (!user) return [];
     return ctx.db
       .query("tasks")
       .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
@@ -205,7 +206,8 @@ export const restore = mutation({
 export const listTrashed = query({
   args: {},
   handler: async (ctx) => {
-    const user = await requireAuth(ctx);
+    const user = await getAuthUserOrNull(ctx);
+    if (!user) return [];
     return ctx.db
       .query("tasks")
       .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
@@ -219,7 +221,8 @@ export const listTrashed = query({
 export const get = query({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
-    const user = await requireAuth(ctx);
+    const user = await getAuthUserOrNull(ctx);
+    if (!user) return null;
     const task = await ctx.db.get(args.taskId);
     if (!task || task.ownerId !== user._id) return null;
     return task;
