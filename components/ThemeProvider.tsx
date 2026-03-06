@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, Fragment, type ReactNode } from "react";
 
 type Theme = "light" | "dark";
 
@@ -11,15 +11,19 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({ children }: { children: ReactNode }) {
   // Get theme from localStorage or default to dark
   const getInitialTheme = (): Theme => {
     if (typeof window === "undefined") return "dark";
-    const saved = localStorage.getItem("quid-theme") as Theme;
-    return saved === "light" ? "light" : "dark";
+    try {
+      const saved = localStorage.getItem("quid-theme") as Theme;
+      return saved === "light" ? "light" : "dark";
+    } catch {
+      return "dark";
+    }
   };
 
-  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [theme, setTheme] = useState<Theme>(() => getInitialTheme());
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -43,7 +47,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Prevent hydration mismatch
   if (!mounted) {
-    return <>{children}</>;
+    return <div style={{ display: "contents" }}>{children}</div>;
   }
 
   return (
