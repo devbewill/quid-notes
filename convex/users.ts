@@ -16,6 +16,18 @@ export const current = query({
   },
 });
 
+/** Returns the current authenticated user's profile, including soft-deleted users. */
+export const currentWithDeleted = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) return null;
+    const user = await ctx.db.get(userId);
+    if (!user) return null;
+    return user;
+  },
+});
+
 /** Update display name only — email is immutable. */
 export const updateProfile = mutation({
   args: {
@@ -104,6 +116,28 @@ export const getDeletionStatus = query({
 });
 
 /**
+ * Check if an email belongs to a soft-deleted account.
+ * Used during sign-in to prevent soft-deleted users from signing in.
+ */
+export const checkEmailDeletionStatus = query({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+
+    if (!user) return { exists: false, isDeleted: false };
+
+    return {
+      exists: true,
+      isDeleted: user.isDeleted ?? false,
+      deletionScheduledAt: user.deletionScheduledAt,
+    };
+  },
+});
+
+/**
  * Export all user data as a JSON string.
  * Excludes: ipHash, userAgent, internal Convex IDs — per GDPR data portability.
  */
@@ -134,7 +168,9 @@ export const exportData = action({
         title: n.title as string,
         text: n.text as string,
         status: n.status as string,
-        startDate: n.startDate ? new Date(n.startDate as number).toISOString() : null,
+        startDate: n.startDate
+          ? new Date(n.startDate as number).toISOString()
+          : null,
         dueDate: n.dueDate ? new Date(n.dueDate as number).toISOString() : null,
         createdAt: new Date(n.createdAt as number).toISOString(),
         updatedAt: new Date(n.updatedAt as number).toISOString(),
@@ -144,7 +180,9 @@ export const exportData = action({
         title: t.title as string,
         text: t.text as string,
         status: t.status as string,
-        startDate: t.startDate ? new Date(t.startDate as number).toISOString() : null,
+        startDate: t.startDate
+          ? new Date(t.startDate as number).toISOString()
+          : null,
         dueDate: t.dueDate ? new Date(t.dueDate as number).toISOString() : null,
         createdAt: new Date(t.createdAt as number).toISOString(),
         updatedAt: new Date(t.updatedAt).toISOString(),
@@ -204,5 +242,49 @@ export const hardDeleteImmediate = mutation({
 
     // 5. Delete the user document itself
     await ctx.db.delete(userId);
+  },
+});
+
+/**
+ * Restore a soft-deleted user by email.
+ * This is an admin function to restore accidentally deleted accounts.
+ */
+export const restoreUserByEmail = mutation({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+
+    if (!user) {
+      throw new Error("USER_NOT_FOUND");
+    }
+
+    if (!user.isDeleted) {
+      throw new Error("USER_NOT_DELETED");
+    }
+
+    await ctx.db.patch(user._id, {
+      isDeleted: false,
+      deletionRequestedAt: undefined,
+      deletionScheduledAt: undefined,
+    });
+
+    return { success: true, email: user.email };
+  },
+});
+
+/**
+ * Admin action to restore a soft-deleted user by email.
+ * Can be called from the Convex dashboard.
+ */
+export const adminRestoreUser = action({
+  args: { email: v.string() },
+  handler: async (ctx, args): Promise<{ success: boolean; email: string }> => {
+    const result = await ctx.runMutation(api.users.restoreUserByEmail, {
+      email: args.email,
+    });
+    return result;
   },
 });

@@ -7,7 +7,17 @@ import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, X, Mail, Lock, User, AlertCircle, Shield, Trash2, LogOut } from "lucide-react";
+import {
+  ArrowRight,
+  X,
+  Mail,
+  Lock,
+  User,
+  AlertCircle,
+  Shield,
+  Trash2,
+  LogOut,
+} from "lucide-react";
 
 export default function SignInPage() {
   const { signIn, signOut } = useAuthActions();
@@ -23,53 +33,73 @@ export default function SignInPage() {
 
   const { isAuthenticated, isLoading } = useConvexAuth();
   const user = useQuery(api.users.current, isAuthenticated ? {} : "skip");
-  const deletionStatus = useQuery(api.users.getDeletionStatus, isAuthenticated ? {} : "skip");
+  const userWithDeleted = useQuery(
+    api.users.currentWithDeleted,
+    isAuthenticated ? {} : "skip",
+  );
+  const deletionStatus = useQuery(
+    api.users.getDeletionStatus,
+    isAuthenticated ? {} : "skip",
+  );
+  const emailDeletionStatus = useQuery(
+    api.users.checkEmailDeletionStatus,
+    email ? { email } : "skip",
+  );
   const cancelDeletion = useMutation(api.users.cancelDeletion);
   const hardDelete = useMutation(api.users.hardDeleteImmediate);
 
-  // Redirect to home if authenticated, user doc exists, and not pending deletion
-  // Wait for isLoading to be false to ensure user doc is created
+  // Handle authentication and user state
   useEffect(() => {
-    if (!isLoading && isAuthenticated && user && !deletionStatus) {
+    if (isLoading) return;
+
+    // Debug logging
+    console.log("Auth state:", {
+      isAuthenticated,
+      user: user ? "exists" : "null",
+      userWithDeleted: userWithDeleted
+        ? {
+            exists: true,
+            isDeleted: userWithDeleted.isDeleted,
+            email: userWithDeleted.email,
+          }
+        : "null",
+      deletionStatus: deletionStatus
+        ? {
+            exists: true,
+            deletionScheduledAt: deletionStatus.deletionScheduledAt,
+          }
+        : "null",
+    });
+
+    // If user is authenticated and has a valid user doc, redirect to home
+    if (isAuthenticated && user && !deletionStatus) {
       console.log("Redirecting authenticated user to home...");
       router.replace("/");
+      return;
     }
-  }, [isLoading, isAuthenticated, user, deletionStatus, router]);
 
-  // Force page reload if authenticated but user doc not ready
-  // This triggers the second refreshSession that Convex needs
-  useEffect(() => {
-    if (!isLoading && isAuthenticated && !user && !deletionStatus) {
+    // If user is authenticated but user doc is not ready, force reload
+    if (
+      isAuthenticated &&
+      !user &&
+      !deletionStatus &&
+      !userWithDeleted?.isDeleted
+    ) {
       console.log("User authenticated but doc not ready, forcing reload...");
-      // Force a full page reload to trigger second refreshSession
       const timeout = setTimeout(() => {
         console.log("Executing forced reload...");
         window.location.reload();
       }, 1500);
       return () => clearTimeout(timeout);
     }
-  }, [isLoading, isAuthenticated, user, deletionStatus]);
-
-  // Additional safeguard: if on signin page and authenticated, force redirect
-  useEffect(() => {
-    const checkAuth = () => {
-      if (!isLoading && isAuthenticated && user && !deletionStatus) {
-        console.log("Forcing redirect from signin to home...");
-        window.location.href = "/";
-      }
-    };
-
-    // Check after a delay to catch delayed auth updates
-    const timeout1 = setTimeout(checkAuth, 500);
-    const timeout2 = setTimeout(checkAuth, 1000);
-    const timeout3 = setTimeout(checkAuth, 2000);
-
-    return () => {
-      clearTimeout(timeout1);
-      clearTimeout(timeout2);
-      clearTimeout(timeout3);
-    };
-  }, [isLoading, isAuthenticated, user, deletionStatus]);
+  }, [
+    isLoading,
+    isAuthenticated,
+    user,
+    userWithDeleted,
+    deletionStatus,
+    router,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +107,7 @@ export default function SignInPage() {
       setError("Devi accettare l'Informativa sulla Privacy per continuare.");
       return;
     }
+
     setLoading(true);
     setError(null);
     try {
@@ -99,7 +130,7 @@ export default function SignInPage() {
         // Ignore if not signed in
       }
       // Small delay to ensure session is cleared
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       await signIn("google");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Errore di autenticazione");
@@ -125,29 +156,46 @@ export default function SignInPage() {
       await cancelDeletion();
       router.push("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossibile recuperare l'account");
+      setError(
+        err instanceof Error ? err.message : "Impossibile recuperare l'account",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const handleHardDelete = async () => {
-    if (!confirm("Sei sicuro? Questa azione distruggerà IMMEDIATAMENTE tutti i tuoi dati, le tue note e il tuo account. L'azione è irreversibile.")) return;
+    if (
+      !confirm(
+        "Sei sicuro? Questa azione distruggerà IMMEDIATAMENTE tutti i tuoi dati, le tue note e il tuo account. L'azione è irreversibile.",
+      )
+    )
+      return;
     setLoading(true);
     try {
       await hardDelete();
       await signOut();
       setFlow("signIn");
-      setError("Account eliminato con successo. Puoi registrarti di nuovo come nuovo utente.");
+      setError(
+        "Account eliminato con successo. Puoi registrarti di nuovo come nuovo utente.",
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossibile eliminare l'account");
+      setError(
+        err instanceof Error ? err.message : "Impossibile eliminare l'account",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   // If user is authenticated but user doc is not ready (during OAuth setup)
-  if (isAuthenticated && !user && !deletionStatus) {
+  // Check if user is soft-deleted first
+  if (
+    isAuthenticated &&
+    !user &&
+    !deletionStatus &&
+    !userWithDeleted?.isDeleted
+  ) {
     return (
       <div className="min-h-screen bg-[#050508] flex items-center justify-center px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(139,92,246,0.08),transparent)]" />
@@ -176,7 +224,7 @@ export default function SignInPage() {
     );
   }
 
-  if (isAuthenticated && deletionStatus) {
+  if (isAuthenticated && (deletionStatus || userWithDeleted?.isDeleted)) {
     return (
       <div className="min-h-screen bg-[#050508] flex items-center justify-center px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(139,92,246,0.08),transparent)]" />
@@ -190,12 +238,22 @@ export default function SignInPage() {
           <div className="text-center mb-12">
             <Shield className="w-20 h-20 mx-auto mb-6 text-violet-500" />
             <h1 className="font-black text-4xl tracking-tighter text-white uppercase mb-4">
-              Account in<br/>Eliminazione
+              Account in
+              <br />
+              Eliminazione
             </h1>
             <p className="text-zinc-400 text-lg leading-relaxed">
-              Il tuo account è attualmente programmato per l&apos;eliminazione definitiva il{" "}
+              Il tuo account è attualmente programmato per l&apos;eliminazione
+              definitiva il{" "}
               <span className="text-white font-medium">
-                {deletionStatus.deletionScheduledAt ? new Date(deletionStatus.deletionScheduledAt).toLocaleDateString() : "presto"}
+                {deletionStatus?.deletionScheduledAt ||
+                userWithDeleted?.deletionScheduledAt
+                  ? new Date(
+                      deletionStatus?.deletionScheduledAt ||
+                        userWithDeleted?.deletionScheduledAt ||
+                        0,
+                    ).toLocaleDateString()
+                  : "presto"}
               </span>
               .
             </p>
@@ -218,7 +276,8 @@ export default function SignInPage() {
               disabled={loading}
               className="group w-full bg-violet-600 text-white font-black text-lg uppercase tracking-widest px-6 py-4 hover:bg-violet-500 transition-all border-2 border-transparent hover:border-violet-400 shadow-[4px_4px_0_0_#000] hover:shadow-[6px_6px_0_0_#fff] hover:-translate-x-0.5 hover:-translate-y-0.5 disabled:opacity-50 disabled:shadow-none disabled:hover:translate-x-0 disabled:hover:translate-y-0 flex items-center justify-center gap-3"
             >
-              {loading ? "…" : "Recupera il mio account"} <Shield className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              {loading ? "…" : "Recupera il mio account"}{" "}
+              <Shield className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
 
             <button
@@ -226,7 +285,8 @@ export default function SignInPage() {
               disabled={loading}
               className="w-full bg-rose-500/10 text-rose-500 font-bold text-sm uppercase tracking-wider px-6 py-4 border-2 border-rose-500/20 hover:bg-rose-500/20 hover:border-rose-500/40 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
             >
-              {loading ? "…" : "Elimina ORA (Test Wipe)"} <Trash2 className="w-5 h-5" />
+              {loading ? "…" : "Elimina ORA (Test Wipe)"}{" "}
+              <Trash2 className="w-5 h-5" />
             </button>
 
             <button
@@ -246,7 +306,10 @@ export default function SignInPage() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(139,92,246,0.08),transparent)]" />
 
       <div className="absolute top-6 left-6">
-        <Link href="/landing-page" className="text-zinc-600 hover:text-white transition-colors font-bold text-sm tracking-widest uppercase">
+        <Link
+          href="/landing-page"
+          className="text-zinc-600 hover:text-white transition-colors font-bold text-sm tracking-widest uppercase"
+        >
           ← Torna alla Landing
         </Link>
       </div>
@@ -270,7 +333,10 @@ export default function SignInPage() {
           {(["signIn", "signUp"] as const).map((f) => (
             <button
               key={f}
-              onClick={() => { setFlow(f); setError(null); }}
+              onClick={() => {
+                setFlow(f);
+                setError(null);
+              }}
               className={`flex-1 py-3 font-black text-sm uppercase tracking-wider transition-all duration-300 ${
                 flow === f
                   ? "bg-violet-600 text-white shadow-[2px_2px_0_0_#000]"
@@ -331,15 +397,22 @@ export default function SignInPage() {
                 />
                 <span className="leading-relaxed">
                   Ho letto e accetto l&apos;{" "}
-                  <Link href="/privacy" target="_blank" className="text-violet-400 hover:text-violet-300 underline underline-offset-4">
+                  <Link
+                    href="/privacy"
+                    target="_blank"
+                    className="text-violet-400 hover:text-violet-300 underline underline-offset-4"
+                  >
                     Informativa sulla Privacy
                   </Link>{" "}
                   e i{" "}
-                  <Link href="/terms" target="_blank" className="text-violet-400 hover:text-violet-300 underline underline-offset-4">
+                  <Link
+                    href="/terms"
+                    target="_blank"
+                    className="text-violet-400 hover:text-violet-300 underline underline-offset-4"
+                  >
                     Termini di Servizio
                   </Link>
-                  .
-                  <span className="text-red-500"> *</span>
+                  .<span className="text-red-500"> *</span>
                 </span>
               </label>
 
@@ -374,13 +447,17 @@ export default function SignInPage() {
             className="group w-full bg-violet-600 text-white font-black text-lg uppercase tracking-widest px-6 py-4 hover:bg-violet-500 transition-all border-2 border-transparent hover:border-violet-400 shadow-[6px_6px_0_0_#000] hover:shadow-[10px_10px_0_0_#fff] hover:-translate-x-1 hover:-translate-y-1 disabled:opacity-50 disabled:shadow-none disabled:hover:translate-x-0 disabled:hover:translate-y-0 flex items-center justify-center gap-3"
           >
             {loading ? "…" : flow === "signIn" ? "Accedi" : "Crea account"}
-            {!loading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
+            {!loading && (
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            )}
           </button>
         </form>
 
         <div className="flex items-center gap-4 my-8">
           <div className="flex-1 h-px bg-zinc-800" />
-          <span className="text-xs font-bold text-zinc-600 uppercase tracking-widest">oppure</span>
+          <span className="text-xs font-bold text-zinc-600 uppercase tracking-widest">
+            oppure
+          </span>
           <div className="flex-1 h-px bg-zinc-800" />
         </div>
 
@@ -392,7 +469,10 @@ export default function SignInPage() {
         </button>
 
         <div className="mt-12 text-center">
-          <Link href="/landing-page" className="text-sm font-bold text-zinc-500 hover:text-white uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
+          <Link
+            href="/landing-page"
+            className="text-sm font-bold text-zinc-500 hover:text-white uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+          >
             Scopri QUID Notes <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

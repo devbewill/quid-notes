@@ -29,9 +29,18 @@ export default function Home() {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useConvexAuth();
   const user = useQuery(api.users.current, isAuthenticated ? {} : "skip");
-  const sidebarNotes = useQuery(api.notes.listTopLevel, isAuthenticated && user ? {} : "skip");
+  const userWithDeleted = useQuery(
+    api.users.currentWithDeleted,
+    isAuthenticated ? {} : "skip",
+  );
+  const sidebarNotes = useQuery(
+    api.notes.listTopLevel,
+    isAuthenticated && user ? {} : "skip",
+  );
 
-  const [selectedNoteIds, setSelectedNoteIds] = useState<Set<Id<"notes">>>(new Set());
+  const [selectedNoteIds, setSelectedNoteIds] = useState<Set<Id<"notes">>>(
+    new Set(),
+  );
   const [showActivateModal, setShowActivateModal] = useState(false);
   const [editNote, setEditNote] = useState<NoteDoc | null>(null);
   const [editTask, setEditTask] = useState<TaskDoc | null>(null);
@@ -40,10 +49,18 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "note" | "task">("all");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<"all" | "idle" | "active" | "completed">("all");
-  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<Id<"tasks">>>(new Set());
-  const [viewMode, setViewMode] = useState<"table" | "timeline" | "kanban" | "trash">("table");
-  const [activeFilter, setActiveFilter] = useState<"inbox" | "active" | "todo" | "completed">("inbox");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "idle" | "active" | "completed"
+  >("all");
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<Id<"tasks">>>(
+    new Set(),
+  );
+  const [viewMode, setViewMode] = useState<
+    "table" | "timeline" | "kanban" | "trash"
+  >("table");
+  const [activeFilter, setActiveFilter] = useState<
+    "inbox" | "active" | "todo" | "completed"
+  >("inbox");
   const [showCommandPalette, setShowCommandPalette] = useState(false);
 
   // Keyboard shortcuts
@@ -67,10 +84,22 @@ export default function Home() {
     }
   }, [isLoading, isAuthenticated, router]);
 
+  // Redirect to signin if user is soft-deleted
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && userWithDeleted?.isDeleted) {
+      console.log(
+        "Soft-deleted user detected on home page, redirecting to signin...",
+      );
+      router.push("/signin");
+    }
+  }, [isLoading, isAuthenticated, userWithDeleted, router]);
+
   const uniqueTags = useMemo(() => {
     if (!sidebarNotes) return [];
     const set = new Set<string>();
-    sidebarNotes.forEach((n) => (n as NoteDoc).tags?.forEach((t) => set.add(t)));
+    sidebarNotes.forEach((n) =>
+      (n as NoteDoc).tags?.forEach((t) => set.add(t)),
+    );
     return [...set].sort();
   }, [sidebarNotes]);
 
@@ -85,11 +114,11 @@ export default function Home() {
 
   const existingTags = useMemo((): Set<string> => {
     const set = new Set<string>();
-    
+
     sidebarNotes?.forEach((n) => {
       (n as NoteDoc).tags?.forEach((t) => set.add(t.toLowerCase()));
     });
-    
+
     return set;
   }, [sidebarNotes]);
 
@@ -136,7 +165,9 @@ export default function Home() {
     handleClear();
   };
 
-  const handleBulkStatusChange = async (status: "idle" | "active" | "completed") => {
+  const handleBulkStatusChange = async (
+    status: "idle" | "active" | "completed",
+  ) => {
     // Implement bulk status change if needed
     handleClear();
   };
@@ -204,10 +235,7 @@ export default function Home() {
           />
 
           {/* Create button */}
-          <CreateButton
-            onClick={() => setShowCreate(true)}
-            label="New"
-          />
+          <CreateButton onClick={() => setShowCreate(true)} label="New" />
         </div>
 
         {/* Filter bar */}
@@ -223,7 +251,7 @@ export default function Home() {
                     "text-xs px-3 py-1.5 rounded-md font-medium transition-colors",
                     typeFilter === t
                       ? "bg-bg-surface text-text-primary"
-                      : "text-text-muted hover:text-text-secondary"
+                      : "text-text-muted hover:text-text-secondary",
                   )}
                 >
                   {t === "all" ? "All" : t === "note" ? "Note" : "Task"}
@@ -231,7 +259,9 @@ export default function Home() {
               ))}
             </div>
 
-            {uniqueTags.length > 0 && <div className="w-px h-5 bg-border-default mx-1" />}
+            {uniqueTags.length > 0 && (
+              <div className="w-px h-5 bg-border-default mx-1" />
+            )}
 
             {/* Tag chips */}
             <div className="flex gap-1.5 flex-wrap">
@@ -243,13 +273,18 @@ export default function Home() {
                     onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
                     className={cn(
                       "text-[10px] px-2 py-0.5 rounded-md font-medium text-text-inverse",
-                      !c && (tagFilter === tag
-                        ? "bg-accent-primary"
-                        : "bg-accent-primary/80")
+                      !c &&
+                        (tagFilter === tag
+                          ? "bg-accent-primary"
+                          : "bg-accent-primary/80"),
                     )}
-                    style={c ? {
-                      background: tagFilter === tag ? c : `${c}80`,
-                    } : undefined}
+                    style={
+                      c
+                        ? {
+                            background: tagFilter === tag ? c : `${c}80`,
+                          }
+                        : undefined
+                    }
                   >
                     {tag}
                   </button>
@@ -257,9 +292,15 @@ export default function Home() {
               })}
             </div>
 
-            {(typeFilter !== "all" || tagFilter !== null || statusFilter !== "all") && (
+            {(typeFilter !== "all" ||
+              tagFilter !== null ||
+              statusFilter !== "all") && (
               <button
-                onClick={() => { setTypeFilter("all"); setTagFilter(null); setStatusFilter("all"); }}
+                onClick={() => {
+                  setTypeFilter("all");
+                  setTagFilter(null);
+                  setStatusFilter("all");
+                }}
                 className="text-xs text-text-muted hover:text-text-secondary transition-colors flex items-center gap-1 ml-2"
               >
                 <span>×</span> Clear filters
@@ -314,7 +355,11 @@ export default function Home() {
       {/* ── Note edit overlay ────────────────────────────────────────────── */}
       <AnimatePresence>
         {editNote && (
-          <NoteEditPanel note={editNote} onClose={() => setEditNote(null)} globalTagColors={globalTagColors} />
+          <NoteEditPanel
+            note={editNote}
+            onClose={() => setEditNote(null)}
+            globalTagColors={globalTagColors}
+          />
         )}
       </AnimatePresence>
 
@@ -376,14 +421,16 @@ export default function Home() {
             onCreateNote={handleCreateNoteFromPalette}
             onCreateTask={handleCreateTaskFromPalette}
             onSwitchView={setViewMode}
-            onOpenTags={() => { setShowCommandPalette(false); setShowTagsPanel(true); }}
+            onOpenTags={() => {
+              setShowCommandPalette(false);
+              setShowTagsPanel(true);
+            }}
           />
         )}
       </AnimatePresence>
 
       {/* ── Consent banner ───────────────────────────────────────────────── */}
       <ConsentBanner />
-
     </div>
   );
 }
