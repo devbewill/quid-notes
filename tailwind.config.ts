@@ -10,7 +10,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        /* Backgrounds — Dark Deep Theme */
+        /* Backgrounds — Modern Light Theme */
         bg: {
           deep: "var(--bg-deep)",
           primary: "var(--bg-primary)",
@@ -18,20 +18,20 @@ const config: Config = {
           elevated: "var(--bg-elevated)",
           hover: "var(--bg-hover)",
         },
-        /* Text — High Contrast */
+        /* Text — High Contrast & Warm */
         text: {
           primary: "var(--text-primary)",
           secondary: "var(--text-secondary)",
           muted: "var(--text-muted)",
           inverse: "var(--text-inverse)",
         },
-        /* Borders — Subtle */
+        /* Borders — Refined & Subtle */
         border: {
           subtle: "var(--border-subtle)",
           default: "var(--border-default)",
           hover: "var(--border-hover)",
         },
-        /* Accent — Purple Tech */
+        /* Accent — Refined Indigo */
         accent: {
           primary: "var(--accent-primary)",
           secondary: "var(--accent-secondary)",
@@ -39,14 +39,14 @@ const config: Config = {
           light: "var(--accent-light)",
           lighter: "var(--accent-lighter)",
         },
-        /* Semantic — Muted Purple-Tech */
+        /* Semantic — Professional & Clear */
         semantic: {
           error: "var(--semantic-error)",
           warning: "var(--semantic-warning)",
           success: "var(--semantic-success)",
           info: "var(--semantic-info)",
         },
-        /* Tags — Vibrant */
+        /* Tags — Soft & Pastel */
         tag: {
           purple: "var(--tag-purple)",
           blue: "var(--tag-blue)",
@@ -91,11 +91,12 @@ const config: Config = {
         sm: "var(--shadow-sm)",
         md: "var(--shadow-md)",
         lg: "var(--shadow-lg)",
+        xl: "var(--shadow-xl)",
       },
       animation: {
-        "fade-in": "fadeIn 0.2s ease-out",
-        "slide-up": "slideUp 0.25s ease-out",
-        "scale-in": "scaleIn 0.2s ease-out",
+        "fade-in": "fadeIn 0.15s ease-out",
+        "slide-up": "slideUp 0.2s ease-out",
+        "scale-in": "scaleIn 0.15s ease-out",
       },
       keyframes: {
         fadeIn: {
@@ -103,16 +104,16 @@ const config: Config = {
           to: { opacity: "1" },
         },
         slideUp: {
-          from: { opacity: "0", transform: "translateY(8px)" },
+          from: { opacity: "0", transform: "translateY(6px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
         scaleIn: {
-          from: { opacity: "0", transform: "scale(0.95)" },
+          from: { opacity: "0", transform: "scale(0.96)" },
           to: { opacity: "1", transform: "scale(1)" },
         },
       },
       transitionTimingFunction: {
-        "smooth": "cubic-bezier(0.4, 0, 0.2, 1)",
+        smooth: "cubic-bezier(0.4, 0, 0.2, 1)",
       },
     },
   },
