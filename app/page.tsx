@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
+import { useConvex } from "convex/react";
 import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { api } from "@/convex/_generated/api";
@@ -14,7 +15,7 @@ import { ActivateModal } from "@/components/ActivateModal";
 import { ConsentBanner } from "@/components/ConsentBanner";
 import { NoteEditPanel } from "@/components/NoteEditPanel";
 import { TaskEditPanel } from "@/components/TaskEditPanel";
-import { CreateModal } from "@/components/CreateModal";
+import { CreateTypeSelector } from "@/components/CreateTypeSelector";
 import { TagsPanel } from "@/components/TagsPanel";
 import { TimelineView } from "@/components/TimelineView";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -27,8 +28,11 @@ import { ViewModeSelector } from "@/components/ViewModeSelector";
 
 export default function Home() {
   const router = useRouter();
+  const convex = useConvex();
   const { isAuthenticated, isLoading } = useConvexAuth();
   const user = useQuery(api.users.current, isAuthenticated ? {} : "skip");
+  const createNote = useMutation(api.notes.create);
+  const createTask = useMutation(api.tasks.createDirect);
   const userWithDeleted = useQuery(
     api.users.currentWithDeleted,
     isAuthenticated ? {} : "skip",
@@ -177,14 +181,92 @@ export default function Home() {
     handleClear();
   };
 
-  const handleCreateNoteFromPalette = () => {
-    setShowCreate(true);
+  const handleCreateNoteFromPalette = async () => {
     setShowCommandPalette(false);
+    try {
+      const newNoteId = await createNote({
+        title: "",
+        text: "",
+      });
+      const newNote = await new Promise<NoteDoc>((resolve) => {
+        const interval = setInterval(async () => {
+          const note = await convex.query(api.notes.get, { noteId: newNoteId });
+          if (note) {
+            clearInterval(interval);
+            resolve(note as NoteDoc);
+          }
+        }, 100);
+      });
+      setEditNote(newNote);
+    } catch (error) {
+      console.error("Failed to create note:", error);
+    }
   };
 
-  const handleCreateTaskFromPalette = () => {
-    setShowCreate(true);
+  const handleCreateTaskFromPalette = async () => {
     setShowCommandPalette(false);
+    try {
+      const newTaskId = await createTask({
+        title: "",
+        text: "",
+      });
+      const newTask = await new Promise<TaskDoc>((resolve) => {
+        const interval = setInterval(async () => {
+          const task = await convex.query(api.tasks.get, { taskId: newTaskId });
+          if (task) {
+            clearInterval(interval);
+            resolve(task as TaskDoc);
+          }
+        }, 100);
+      });
+      setEditTask(newTask);
+    } catch (error) {
+      console.error("Failed to create task:", error);
+    }
+  };
+
+  const handleCreateNote = async () => {
+    setShowCreate(false);
+    try {
+      const newNoteId = await createNote({
+        title: "",
+        text: "",
+      });
+      const newNote = await new Promise<NoteDoc>((resolve) => {
+        const interval = setInterval(async () => {
+          const note = await convex.query(api.notes.get, { noteId: newNoteId });
+          if (note) {
+            clearInterval(interval);
+            resolve(note as NoteDoc);
+          }
+        }, 100);
+      });
+      setEditNote(newNote);
+    } catch (error) {
+      console.error("Failed to create note:", error);
+    }
+  };
+
+  const handleCreateTask = async () => {
+    setShowCreate(false);
+    try {
+      const newTaskId = await createTask({
+        title: "",
+        text: "",
+      });
+      const newTask = await new Promise<TaskDoc>((resolve) => {
+        const interval = setInterval(async () => {
+          const task = await convex.query(api.tasks.get, { taskId: newTaskId });
+          if (task) {
+            clearInterval(interval);
+            resolve(task as TaskDoc);
+          }
+        }, 100);
+      });
+      setEditTask(newTask);
+    } catch (error) {
+      console.error("Failed to create task:", error);
+    }
   };
 
   if (isLoading || !isAuthenticated || user === undefined) {
@@ -374,9 +456,15 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* ── Create modal ─────────────────────────────────────────────────── */}
+      {/* ── Create type selector ─────────────────────────────────────────── */}
       <AnimatePresence>
-        {showCreate && <CreateModal onClose={() => setShowCreate(false)} />}
+        {showCreate && (
+          <CreateTypeSelector
+            onClose={() => setShowCreate(false)}
+            onSelectNote={handleCreateNote}
+            onSelectTask={handleCreateTask}
+          />
+        )}
       </AnimatePresence>
 
       {/* ── ACTIVATE bar ─────────────────────────────────────────── */}

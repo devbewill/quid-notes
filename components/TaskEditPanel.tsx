@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import type { TaskDoc, NoteDoc } from "@/lib/types";
 import { MarkdownEditor } from "@/components/MarkdownEditor";
 import { EditPanelLayout } from "@/components/EditPanelLayout";
+import { cn } from "@/lib/cn";
 
 interface Props {
   task: TaskDoc;
@@ -19,6 +21,133 @@ function tsToDate(ts?: number) {
 
 function dateToTs(val: string): number | undefined {
   return val ? new Date(val).getTime() : undefined;
+}
+
+// ─── Compact status selector - technical design ─────────────────────────────────────
+function CompactStatusSelector({
+  value,
+  onChange,
+}: {
+  value: "idle" | "active" | "completed";
+  onChange: (v: "idle" | "active" | "completed") => void;
+}) {
+  const options = [
+    {
+      value: "idle" as const,
+      label: "TODO",
+      color: "text-semantic-error border-semantic-error/30",
+    },
+    {
+      value: "active" as const,
+      label: "ACTIVE",
+      color: "text-semantic-warning border-semantic-warning/30",
+    },
+    {
+      value: "completed" as const,
+      label: "DONE",
+      color: "text-semantic-success border-semantic-success/30",
+    },
+  ];
+
+  return (
+    <div className="flex items-center gap-1">
+      <span className="text-[10px] font-mono font-bold text-accent-secondary uppercase tracking-wider mr-2 border-b border-accent-secondary/30 pb-0.5">
+        STATUS:
+      </span>
+      {options.map((option) => (
+        <button
+          key={option.value}
+          onClick={() => onChange(option.value)}
+          className={cn(
+            "px-2 py-1 text-[10px] font-mono font-bold uppercase tracking-wider border transition-colors",
+            value === option.value
+              ? `${option.color} bg-current/5`
+              : "text-text-muted/40 border-border-subtle hover:text-text-muted/60",
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Compact date picker - technical design ──────────────────────────────────────
+function CompactDatePicker({
+  label,
+  value,
+  onChange,
+  overdue = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  overdue?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] font-mono font-bold text-text-muted/60 uppercase tracking-wider whitespace-nowrap">
+        {label}
+      </span>
+      <div className="relative">
+        <input
+          type="date"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={cn(
+            "px-2 py-1 text-xs font-mono bg-bg-elevated border outline-none transition-colors",
+            overdue
+              ? "border-semantic-error/50 text-semantic-error"
+              : "border-border-subtle text-text-muted hover:border-border-default",
+          )}
+        />
+        {overdue && (
+          <div className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-semantic-error" />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Compact linked notes - technical design ──────────────────────────────────────
+function CompactLinkedNotes({
+  notes,
+  onEditNote,
+  onClose,
+}: {
+  notes: NoteDoc[];
+  onEditNote: (note: NoteDoc) => void;
+  onClose: () => void;
+}) {
+  if (notes.length === 0) return null;
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] font-mono font-bold text-text-muted/60 uppercase tracking-wider whitespace-nowrap">
+        LINKED
+      </span>
+      <div className="flex gap-1">
+        {notes.slice(0, 3).map((note) => (
+          <button
+            key={note._id}
+            onClick={() => {
+              onClose();
+              onEditNote(note);
+            }}
+            className="px-2 py-1 text-[10px] font-mono text-text-muted border border-border-subtle hover:border-accent-secondary/50 hover:text-accent-secondary transition-colors truncate max-w-[120px]"
+            title={note.title || "Untitled"}
+          >
+            {note.title || "Untitled"}
+          </button>
+        ))}
+        {notes.length > 3 && (
+          <span className="px-2 py-1 text-[10px] font-mono text-text-muted/40">
+            +{notes.length - 3}
+          </span>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function TaskEditPanel({ task, onClose, onEditNote }: Props) {
@@ -44,7 +173,9 @@ export function TaskEditPanel({ task, onClose, onEditNote }: Props) {
     setDueDate(tsToDate(task.dueDate));
   }, [task._id]);
 
-  const commit = (overrides: { status?: "idle" | "active" | "completed" } = {}) =>
+  const commit = (
+    overrides: { status?: "idle" | "active" | "completed" } = {},
+  ) =>
     void update({
       taskId: task._id,
       title,
@@ -54,12 +185,20 @@ export function TaskEditPanel({ task, onClose, onEditNote }: Props) {
       dueDate: dateToTs(dueDate),
     });
 
-  const handleClose = () => { commit(); onClose(); };
+  const handleClose = () => {
+    commit();
+    onClose();
+  };
 
   const handleDelete = async () => {
     await deleteTask({ taskId: task._id });
     onClose();
   };
+
+  const isOverdue =
+    !!dueDate &&
+    status !== "completed" &&
+    new Date(dueDate).getTime() < Date.now();
 
   return (
     <EditPanelLayout
@@ -72,92 +211,50 @@ export function TaskEditPanel({ task, onClose, onEditNote }: Props) {
       isPinned={displayTask.isPinned ?? false}
       onTogglePin={() => togglePin({ taskId: task._id })}
       onClose={handleClose}
-      sidebarContent={
-        <>
-          {/* Status */}
-          <div className="flex flex-col gap-1.5">
-            <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-              Status
-            </label>
-            <select
-              value={status}
-              onChange={(e) => {
-                const s = e.target.value as "idle" | "active" | "completed";
-                setStatus(s);
-                commit({ status: s });
-              }}
-              className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-colors"
-            >
-              <option value="idle">To Do</option>
-              <option value="active">In Progress</option>
-              <option value="completed">Completed</option>
-            </select>
-          </div>
+      toolbarContent={
+        <div className="flex items-center gap-4 flex-wrap">
+          <CompactStatusSelector
+            value={status}
+            onChange={(s) => {
+              setStatus(s);
+              commit({ status: s });
+            }}
+          />
 
-          {/* Start date */}
-          <div className="flex flex-col gap-1.5">
-            <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-              Start Date
-            </label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-colors"
-            />
-          </div>
+          <div className="w-px h-4 bg-border-subtle" />
 
-          {/* Due date */}
-          <div className="flex flex-col gap-1.5">
-            <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-              Due Date
-            </label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-colors"
-            />
-          </div>
+          <CompactDatePicker
+            label="START"
+            value={startDate}
+            onChange={setStartDate}
+          />
 
-          {/* Linked Notes */}
+          <CompactDatePicker
+            label="DUE"
+            value={dueDate}
+            onChange={setDueDate}
+            overdue={isOverdue}
+          />
+
+          <div className="w-px h-4 bg-border-subtle" />
+
           {linkedNotes && linkedNotes.length > 0 && onEditNote && (
-            <div className="flex flex-col gap-2 mt-2 pt-4 border-t border-border-subtle">
-              <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                Linked Notes
-              </label>
-              <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
-                {linkedNotes.map((note) => (
-                  <button
-                    key={note._id}
-                    onClick={() => {
-                      onClose();
-                      onEditNote(note as NoteDoc);
-                    }}
-                    className="text-left text-sm px-3 py-2 rounded-md hover:bg-bg-hover transition-colors text-text-primary border border-transparent hover:border-border-subtle truncate"
-                    title={note.title || "Untitled"}
-                  >
-                    {note.title || "Untitled"}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <CompactLinkedNotes
+              notes={linkedNotes as NoteDoc[]}
+              onEditNote={onEditNote}
+              onClose={onClose}
+            />
           )}
 
-          {/* Delete */}
-          <div className="mt-auto pt-4 border-t border-border-subtle">
+          <div className="ml-auto">
             <button
               onClick={handleDelete}
-              className="w-full text-xs text-semantic-error hover:bg-accent-lighter py-2 rounded-lg transition-colors"
+              className="px-2 py-1 text-[10px] font-mono font-bold text-semantic-error border border-semantic-error/30 hover:bg-semantic-error/10 transition-colors uppercase tracking-wider"
             >
-              Delete task
+              [DELETE]
             </button>
           </div>
-        </>
+        </div>
       }
       mainContent={
         <MarkdownEditor

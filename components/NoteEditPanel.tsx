@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import type { NoteDoc } from "@/lib/types";
 import { MarkdownEditor } from "@/components/MarkdownEditor";
 import { EditPanelLayout } from "@/components/EditPanelLayout";
+import { cn } from "@/lib/cn";
 
 interface Props {
   note: NoteDoc;
@@ -21,6 +23,219 @@ function dateToTs(val: string): number | undefined {
   return val ? new Date(val).getTime() : undefined;
 }
 
+// ─── Compact status selector - technical design ─────────────────────────────────────
+function CompactStatusSelector({
+  value,
+  onChange,
+}: {
+  value: "idle" | "active" | "completed";
+  onChange: (v: "idle" | "active" | "completed") => void;
+}) {
+  const options = [
+    {
+      value: "idle" as const,
+      label: "TODO",
+      color: "text-semantic-error border-semantic-error/30",
+    },
+    {
+      value: "active" as const,
+      label: "ACTIVE",
+      color: "text-semantic-warning border-semantic-warning/30",
+    },
+    {
+      value: "completed" as const,
+      label: "DONE",
+      color: "text-semantic-success border-semantic-success/30",
+    },
+  ];
+
+  return (
+    <div className="flex items-center gap-1">
+      <span className="text-[10px] font-mono font-bold text-accent-primary uppercase tracking-wider mr-2 border-b border-accent-primary/30 pb-0.5">
+        STATUS:
+      </span>
+      {options.map((option) => (
+        <button
+          key={option.value}
+          onClick={() => onChange(option.value)}
+          className={cn(
+            "px-2 py-1 text-[10px] font-mono font-bold uppercase tracking-wider border transition-colors",
+            value === option.value
+              ? `${option.color} bg-current/5`
+              : "text-text-muted/40 border-border-subtle hover:text-text-muted/60",
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Compact date picker - technical design ──────────────────────────────────────
+function CompactDatePicker({
+  label,
+  value,
+  onChange,
+  overdue = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  overdue?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] font-mono font-bold text-text-muted/60 uppercase tracking-wider whitespace-nowrap">
+        {label}
+      </span>
+      <div className="relative">
+        <input
+          type="date"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={cn(
+            "px-2 py-1 text-xs font-mono bg-bg-elevated border outline-none transition-colors",
+            overdue
+              ? "border-semantic-error/50 text-semantic-error"
+              : "border-border-subtle text-text-muted hover:border-border-default",
+          )}
+        />
+        {overdue && (
+          <div className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-semantic-error" />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Compact tag input - technical design ──────────────────────────────────────────
+function CompactTagInput({
+  tags,
+  tagColors,
+  globalTagColors,
+  onAddTag,
+  onRemoveTag,
+}: {
+  tags: string[];
+  tagColors: Array<{ name: string; color: string }>;
+  globalTagColors: Record<string, string>;
+  onAddTag: (name: string, color: string) => void;
+  onRemoveTag: (tag: string) => void;
+}) {
+  const [input, setInput] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const suggestions = Object.keys(globalTagColors)
+    .filter(
+      (t) =>
+        !tags.includes(t) &&
+        (input === "" || t.toLowerCase().includes(input.toLowerCase())),
+    )
+    .slice(0, 5);
+
+  const handleAddTag = (name: string, color?: string) => {
+    const t = name.trim().toLowerCase();
+    if (!t || tags.includes(t)) {
+      setInput("");
+      setShowSuggestions(false);
+      return;
+    }
+    const c = color ?? globalTagColors[t] ?? "#8B5CF6";
+    onAddTag(t, c);
+    setInput("");
+    setShowSuggestions(false);
+  };
+
+  const getTagColor = (tag: string) =>
+    tagColors.find((c) => c.name === tag)?.color ?? "#8B5CF6";
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] font-mono font-bold text-text-muted/60 uppercase tracking-wider whitespace-nowrap">
+          TAGS
+        </span>
+
+        {/* Tags display */}
+        <div className="flex gap-1 flex-wrap">
+          <AnimatePresence mode="popLayout">
+            {tags.map((tag) => (
+              <motion.span
+                key={tag}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider border border-border-subtle"
+                style={{
+                  backgroundColor: `${getTagColor(tag)}15`,
+                  color: getTagColor(tag),
+                }}
+              >
+                {tag}
+                <button
+                  onClick={() => onRemoveTag(tag)}
+                  className="hover:text-semantic-error transition-colors"
+                >
+                  ×
+                </button>
+              </motion.span>
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {/* Input */}
+        <div className="relative">
+          <input
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleAddTag(input);
+              }
+            }}
+            placeholder="+"
+            className="w-8 px-1 py-1 text-xs font-mono bg-bg-elevated border border-border-subtle text-text-muted outline-none focus:border-border-default transition-colors text-center"
+          />
+
+          {/* Suggestions dropdown */}
+          <AnimatePresence>
+            {showSuggestions && suggestions.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="absolute top-full left-0 mt-1 bg-bg-surface border border-border-subtle z-50 min-w-[120px]"
+              >
+                {suggestions.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => handleAddTag(s, globalTagColors[s])}
+                    className="w-full text-left px-2 py-1 text-[10px] font-mono text-text-muted hover:bg-bg-hover border-b border-border-subtle/50 last:border-0 flex items-center gap-2"
+                  >
+                    <div
+                      className="w-2 h-2 border border-border-subtle"
+                      style={{ backgroundColor: globalTagColors[s] }}
+                    />
+                    {s}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
   const update = useMutation(api.notes.update);
   const remove = useMutation(api.notes.remove);
@@ -34,14 +249,9 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
   const [startDate, setStartDate] = useState(tsToDate(note.startDate));
   const [dueDate, setDueDate] = useState(tsToDate(note.dueDate));
   const [tags, setTags] = useState<string[]>(note.tags ?? []);
-  const [tagColors, setTagColors] = useState<Array<{ name: string; color: string }>>(note.tagColors ?? []);
-  const [tagInput, setTagInput] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
-
-  // Suggestions: existing global tags matching input, not already added
-  const suggestions = Object.keys(globalTagColors).filter(
-    (t) => !tags.includes(t) && (tagInput === "" || t.includes(tagInput.toLowerCase().trim()))
-  ).slice(0, 6);
+  const [tagColors, setTagColors] = useState<
+    Array<{ name: string; color: string }>
+  >(note.tagColors ?? []);
 
   useEffect(() => {
     setTitle(note.title);
@@ -51,10 +261,15 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
     setDueDate(tsToDate(note.dueDate));
     setTags(note.tags ?? []);
     setTagColors(note.tagColors ?? []);
-    setTagInput("");
   }, [note._id]);
 
-  const commit = (overrides: { status?: "idle" | "active" | "completed"; tags?: string[]; tagColors?: Array<{ name: string; color: string }> } = {}) =>
+  const commit = (
+    overrides: {
+      status?: "idle" | "active" | "completed";
+      tags?: string[];
+      tagColors?: Array<{ name: string; color: string }>;
+    } = {},
+  ) =>
     void update({
       noteId: note._id,
       title,
@@ -67,37 +282,39 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
     });
 
   const addTagWithColor = (name: string, color: string) => {
-    if (!name || tags.includes(name)) { setTagInput(""); setShowSuggestions(false); return; }
+    if (!name || tags.includes(name)) return;
     const nextTags = [...tags, name];
-    const nextColors = [...tagColors.filter((c) => c.name !== name), { name, color }];
+    const nextColors = [
+      ...tagColors.filter((c) => c.name !== name),
+      { name, color },
+    ];
     setTags(nextTags);
     setTagColors(nextColors);
-    setTagInput("");
-    setShowSuggestions(false);
     commit({ tags: nextTags, tagColors: nextColors });
-  };
-
-  const addTag = () => {
-    const t = tagInput.trim().toLowerCase();
-    if (!t || tags.includes(t)) { setTagInput(""); return; }
-    const color = globalTagColors[t] ?? "#8B5CF6";
-    addTagWithColor(t, color);
   };
 
   const removeTag = (tag: string) => {
     const nextTags = tags.filter((t) => t !== tag);
+    const nextColors = tagColors.filter((c) => c.name !== tag);
     setTags(nextTags);
-    commit({ tags: nextTags, tagColors });
+    setTagColors(nextColors);
+    commit({ tags: nextTags, tagColors: nextColors });
   };
 
-  const getTagColor = (tag: string) => tagColors.find((c) => c.name === tag)?.color ?? "#8B5CF6";
-
-  const handleClose = () => { commit(); onClose(); };
+  const handleClose = () => {
+    commit();
+    onClose();
+  };
 
   const handleDelete = async () => {
     await remove({ noteId: note._id });
     onClose();
   };
+
+  const isOverdue =
+    !!dueDate &&
+    status !== "completed" &&
+    new Date(dueDate).getTime() < Date.now();
 
   return (
     <EditPanelLayout
@@ -105,130 +322,55 @@ export function NoteEditPanel({ note, onClose, globalTagColors = {} }: Props) {
       onTitleChange={setTitle}
       onTitleBlur={() => commit()}
       titlePlaceholder="Note title…"
-      label=""
+      label="NOTE"
       updatedAt={displayNote.updatedAt}
       isPinned={displayNote.isPinned ?? false}
       onTogglePin={() => togglePin({ noteId: note._id })}
       onClose={handleClose}
-      sidebarContent={
-        <>
-          {/* Status */}
-          <div className="flex flex-col gap-1.5">
-            <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-              Status
-            </label>
-            <select
-              value={status}
-              onChange={(e) => {
-                const s = e.target.value as "idle" | "active" | "completed";
-                setStatus(s);
-                commit({ status: s });
-              }}
-              className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-colors"
-            >
-              <option value="idle">To Do</option>
-              <option value="active">In Progress</option>
-              <option value="completed">Completed</option>
-            </select>
-          </div>
+      toolbarContent={
+        <div className="flex items-center gap-4 flex-wrap">
+          <CompactStatusSelector
+            value={status}
+            onChange={(s) => {
+              setStatus(s);
+              commit({ status: s });
+            }}
+          />
 
-          {/* Start date */}
-          <div className="flex flex-col gap-1.5">
-            <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-              Start Date
-            </label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-colors"
-            />
-          </div>
+          <div className="w-px h-4 bg-border-subtle" />
 
-          {/* Due date */}
-          <div className="flex flex-col gap-1.5">
-            <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-              Due Date
-            </label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-colors"
-            />
-          </div>
+          <CompactDatePicker
+            label="START"
+            value={startDate}
+            onChange={setStartDate}
+          />
 
-          {/* Tags */}
-          <div className="flex flex-col gap-1.5 relative">
-            <label className="flex items-center gap-1.5 text-xs text-text-muted uppercase tracking-widest">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l6 6a2 2 0 0 1 0 2.828l-6 6a2 2 0 0 1-1.414.586H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /></svg>
-              Tags
-            </label>
-            <div className="flex flex-wrap gap-1">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="relative group px-2 py-0.5 rounded-md text-xs font-medium text-text-inverse transition-opacity"
-                  style={{ backgroundColor: getTagColor(tag) }}
-                >
-                  {tag}
-                  <button
-                    onClick={() => removeTag(tag)}
-                    className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-bg-elevated border border-border-subtle rounded-full flex items-center justify-center text-[8px] text-text-muted opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-1">
-              <input
-                value={tagInput}
-                onChange={(e) => {
-                  setTagInput(e.target.value);
-                  setShowSuggestions(true);
-                }}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addTag();
-                  }
-                }}
-                placeholder="Add tag…"
-                className="flex-1 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-colors"
-              />
-            </div>
-            {/* Tag suggestions */}
-            {showSuggestions && suggestions.length > 0 && (
-              <div className="relative mt-1 w-full bg-bg-surface border border-border-subtle rounded-lg shadow-lg p-1 z-50">
-                {suggestions.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => addTagWithColor(s, globalTagColors[s])}
-                    className="w-full text-left text-sm px-3 py-1.5 rounded-md hover:bg-bg-hover transition-colors text-text-primary"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <CompactDatePicker
+            label="DUE"
+            value={dueDate}
+            onChange={setDueDate}
+            overdue={isOverdue}
+          />
 
-          {/* Delete */}
-          <div className="mt-auto pt-4 border-t border-border-subtle">
+          <div className="w-px h-4 bg-border-subtle" />
+
+          <CompactTagInput
+            tags={tags}
+            tagColors={tagColors}
+            globalTagColors={globalTagColors}
+            onAddTag={addTagWithColor}
+            onRemoveTag={removeTag}
+          />
+
+          <div className="ml-auto">
             <button
               onClick={handleDelete}
-              className="w-full text-xs text-semantic-error hover:bg-accent-lighter py-2 rounded-lg transition-colors"
+              className="px-2 py-1 text-[10px] font-mono font-bold text-semantic-error border border-semantic-error/30 hover:bg-semantic-error/10 transition-colors uppercase tracking-wider"
             >
-              Delete note
+              [DELETE]
             </button>
           </div>
-        </>
+        </div>
       }
       mainContent={
         <MarkdownEditor

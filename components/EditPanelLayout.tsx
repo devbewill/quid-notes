@@ -14,7 +14,7 @@ interface EditPanelLayoutProps {
   isPinned: boolean;
   onTogglePin: () => void;
   onClose: () => void;
-  sidebarContent: ReactNode;
+  toolbarContent: ReactNode;
   mainContent: ReactNode;
 }
 
@@ -28,7 +28,7 @@ export function EditPanelLayout({
   isPinned,
   onTogglePin,
   onClose,
-  sidebarContent,
+  toolbarContent,
   mainContent,
 }: EditPanelLayoutProps) {
   // Keep a stable ref so that ESC listener always calls latest handleClose
@@ -47,74 +47,116 @@ export function EditPanelLayout({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-40 flex items-center justify-center p-6">
-        {/* Backdrop */}
+      <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+        {/* Backdrop - simple, clean */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="absolute inset-0 bg-black/60"
+          className="absolute inset-0 bg-black/40"
           onClick={onClose}
         />
 
-        {/* Modal */}
+        {/* Modal - technical, clean design */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.96 }}
-          transition={{ duration: 0.18 }}
-          className="relative z-10 w-full max-w-5xl min-w-[60%] lg:w-3/5 h-[72vh] bg-bg-surface border border-border-subtle rounded-lg shadow-lg flex flex-col overflow-hidden"
+          initial={{ opacity: 0, scale: 0.98, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.98, y: 10 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="relative z-10 w-full max-w-5xl h-[85vh] bg-bg-surface border border-border-subtle flex flex-col overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-start gap-3 px-6 py-4 border-b border-border-subtle">
-            {label && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-accent-lighter text-accent-primary ring-1 ring-accent-primary/30 font-medium shrink-0 mt-1">
-                {label.toUpperCase()}
-              </span>
-            )}
-            <div className="flex-1 min-w-0">
+          <div className="border-b border-border-subtle">
+            {/* Top bar - label, pin, close */}
+            <div className="flex items-center justify-between px-4 py-2 bg-bg-elevated/50">
+              <div className="flex items-center gap-2">
+                {label && (
+                  <span className="text-[10px] font-mono font-bold text-text-muted/60 uppercase tracking-wider">
+                    [{label}]
+                  </span>
+                )}
+                <span className="text-[10px] font-mono text-text-muted/40">
+                  {new Date(updatedAt).toLocaleDateString("en-US", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={onTogglePin}
+                  className={cn(
+                    "p-1.5 transition-colors",
+                    isPinned
+                      ? "text-semantic-warning"
+                      : "text-text-muted/40 hover:text-text-muted",
+                  )}
+                  title={isPinned ? "Remove from pinned" : "Pin to top"}
+                >
+                  <svg
+                    className={cn("w-4 h-4", isPinned && "fill-current")}
+                    viewBox="0 0 20 20"
+                    stroke="currentColor"
+                    fill="none"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={isPinned ? 0 : 1.5}
+                      d={
+                        isPinned
+                          ? "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"
+                          : "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"
+                      }
+                    />
+                  </svg>
+                </button>
+                <button
+                  onClick={onClose}
+                  className="p-1.5 text-text-muted/40 hover:text-text-muted transition-colors"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Title input */}
+            <div className="px-4 py-3">
               <input
                 value={title}
                 onChange={(e) => onTitleChange(e.target.value)}
                 onBlur={onTitleBlur}
                 placeholder={titlePlaceholder}
-                className="w-full text-lg font-semibold bg-transparent outline-none text-text-primary placeholder:text-text-muted border-none"
+                className="w-full text-lg font-mono bg-transparent outline-none text-text-primary placeholder:text-text-muted/30 border-none"
               />
-              <h4 className="text-[10px] uppercase tracking-wider font-bold text-text-muted mb-4 px-1">Details</h4>
-              <p className="text-[10px] text-text-muted mt-0.5 tabular-nums">
-                Modified {new Date(updatedAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}
-              </p>
-            </div>
-            <div className="flex items-center gap-1 shrink-0 mt-0.5">
-              <button
-                onClick={onTogglePin}
-                className={cn("p-1.5 rounded-md transition-colors", isPinned ? "text-semantic-warning bg-accent-lighter hover:bg-accent-light" : "text-text-muted hover:text-text-primary hover:bg-bg-hover")}
-                title={isPinned ? "Remove from pinned" : "Pin to top"}
-              >
-                <svg className={cn("w-4 h-4", isPinned && "fill-semantic-warning")} viewBox="0 0 20 20" stroke="currentColor" fill="none">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isPinned ? 0 : 1.5} d={isPinned ? "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" : "M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"} />
-                </svg>
-              </button>
-              <button
-                onClick={onClose}
-                className="p-1 text-text-muted hover:text-text-primary text-2xl leading-none transition-colors"
-              >
-                ×
-              </button>
             </div>
           </div>
 
-          {/* Body — two columns */}
-          <div className="flex-1 overflow-hidden flex">
-            {/* Left: meta */}
-            <div className="w-56 shrink-0 border-r border-border-subtle p-5 flex flex-col gap-5 overflow-y-auto">
-              {sidebarContent}
-            </div>
+          {/* Toolbar - controls inline */}
+          <div className="border-b border-border-subtle px-4 py-2 bg-bg-elevated/30">
+            {toolbarContent}
+          </div>
 
-            {/* Right: content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {mainContent}
+          {/* Main content */}
+          <div className="flex-1 overflow-hidden">
+            <div className="h-full overflow-y-auto">
+              <div className="p-4">{mainContent}</div>
             </div>
           </div>
         </motion.div>

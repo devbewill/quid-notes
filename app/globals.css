@@ -67,23 +67,23 @@
   }
 
   :root.dark {
-    /* Dark Mode — Deep but Comfortable */
-    --bg-deep: #0f172a;
-    --bg-primary: #1e293b;
-    --bg-surface: #334155;
-    --bg-elevated: #475569;
-    --bg-hover: #334155;
+    /* Dark Mode — Technical & Clean */
+    --bg-deep: #1a1d23;
+    --bg-primary: #101015;
+    --bg-surface: #2a2e35;
+    --bg-elevated: #33383f;
+    --bg-hover: #2a2e35;
 
-    /* Text — Warm, High Contrast */
-    --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
+    /* Text — High Contrast */
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
     --text-muted: #64748b;
-    --text-inverse: #0f172a;
+    --text-inverse: #22262b;
 
-    /* Borders — Subtle */
-    --border-subtle: #334155;
-    --border-default: #475569;
-    --border-hover: #64748b;
+    /* Borders — Technical & Precise */
+    --border-subtle: #2a2e35;
+    --border-default: #3a3f47;
+    --border-hover: #4a5059;
 
     /* Accent — Bright Indigo */
     --accent-primary: #818cf8;
