@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useLocale } from "@/hooks/useLocale";
+import { useTranslation } from "@/hooks/useLocale";
 
 export function ExportDataButton() {
-  const { t } = useLocale();
+  const { t } = useTranslation();
   const exportData = useAction(api.users.exportData);
   const [loading, setLoading] = useState(false);
 

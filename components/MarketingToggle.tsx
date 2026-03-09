@@ -2,12 +2,12 @@
 
 import { motion } from "framer-motion";
 import { Mail } from "lucide-react";
-import { useLocale } from "@/hooks/useLocale";
+import { useTranslation } from "@/hooks/useLocale";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 export function MarketingToggle() {
-  const { t } = useLocale();
+  const { t } = useTranslation();
   const user = useQuery(api.users.current);
   const updateMarketing = useMutation(api.users.updateMarketingConsent);
 
@@ -30,7 +30,9 @@ export function MarketingToggle() {
           />
         </div>
         <span className="text-sm text-text-primary font-medium">
-          {enabled ? t("account_marketing_enabled") : t("account_marketing_disabled")}
+          {enabled
+            ? t("account_marketing_enabled")
+            : t("account_marketing_disabled")}
         </span>
       </div>
       <div className="text-text-muted hover:text-text-primary transition-colors">

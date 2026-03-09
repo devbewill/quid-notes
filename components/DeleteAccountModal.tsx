@@ -5,7 +5,7 @@ import { useMutation } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { motion } from "framer-motion";
 import { api } from "@/convex/_generated/api";
-import { useLocale } from "@/hooks/useLocale";
+import { useTranslation } from "@/hooks/useLocale";
 import { useRouter } from "next/navigation";
 
 interface DeleteAccountModalProps {
@@ -13,7 +13,7 @@ interface DeleteAccountModalProps {
 }
 
 export function DeleteAccountModal({ onClose }: DeleteAccountModalProps) {
-  const { t } = useLocale();
+  const { t } = useTranslation();
   const router = useRouter();
   const { signOut } = useAuthActions();
   const requestDeletion = useMutation(api.users.requestDeletion);

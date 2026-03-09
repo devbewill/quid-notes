@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useLocale } from "@/hooks/useLocale";
+import { useTranslation } from "@/hooks/useLocale";
 
 const CONSENT_KEY = "quid_consent_v1";
 
 export function ConsentBanner() {
-  const { t } = useLocale();
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -24,8 +24,10 @@ export function ConsentBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-sm z-50
-                    bg-surface border border-border rounded-xl px-5 py-4 shadow-2xl">
+    <div
+      className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-sm z-50
+                    bg-surface border border-border rounded-xl px-5 py-4 shadow-2xl"
+    >
       <p className="text-sm text-text mb-3">{t("consent_message")}</p>
       <div className="flex items-center gap-4">
         <button

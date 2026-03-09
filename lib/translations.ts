@@ -1,88 +1,4 @@
 export const translations = {
-  it: {
-    // Consent banner
-    consent_message:
-      "QUID utilizza solo cookie di sessione essenziali. Nessun tracciamento, nessuna pubblicità.",
-    consent_accept: "Ho capito",
-    consent_privacy_link: "Informativa sulla Privacy",
-
-    // Account menu
-    account_section: "Account",
-    account_edit_profile: "Modifica profilo",
-    account_change_password: "Cambia password",
-    account_marketing_label: "Email promozionali",
-    account_marketing_enabled: "Attive",
-    account_marketing_disabled: "Disattive",
-    account_sign_out: "Esci",
-    account_save: "Salva",
-    account_cancel: "Annulla",
-    account_name_placeholder: "Il tuo nome",
-    account_theme_label: "Tema",
-
-    // Data & Privacy section
-    privacy_section: "Dati e Privacy",
-    privacy_export: "Esporta i miei dati",
-    privacy_policy_link: "Informativa sulla Privacy",
-    terms_link: "Termini di Servizio",
-
-    // Danger zone
-    danger_zone_section: "Zona pericolosa",
-    danger_zone_delete: "Elimina il mio account",
-
-    // Delete modal
-    delete_modal_title: "Eliminare il tuo account?",
-    delete_modal_desc:
-      "Tutte le tue note e attività saranno eliminate definitivamente entro 30 giorni. Puoi annullare l'operazione entro questa finestra.",
-    delete_modal_type_hint: 'Digita "ELIMINA" per confermare:',
-    delete_modal_confirm_word: "ELIMINA",
-    delete_modal_confirm_btn: "Conferma eliminazione",
-    delete_modal_cancel_btn: "Annulla",
-
-    // Export button
-    export_btn: "Esporta i miei dati",
-    export_loading: "Esportazione in corso…",
-
-    // Feed
-    feed_col_title: "Titolo",
-    feed_col_type: "Tipo",
-    feed_col_status: "Stato",
-    feed_col_start: "Inizio",
-    feed_col_due: "Scadenza",
-    feed_empty: "Nessuna nota o attività. Inizia aggiungendone una.",
-
-    // QuickAdd
-    quickadd_placeholder: "+ Aggiungi una nota o attività…",
-    quickadd_title_placeholder: "Titolo",
-    quickadd_text_placeholder: "Descrizione",
-    quickadd_start_placeholder: "Data inizio",
-    quickadd_due_placeholder: "Data scadenza",
-    quickadd_submit: "Aggiungi",
-
-    // Activate bar / modal
-    activate_notes_selected: "note selezionate",
-    activate_note_selected: "nota selezionata",
-    activate_clear: "Cancella",
-    activate_btn: "ATTIVA",
-    activate_modal_title: "ATTIVA",
-    activate_tab_manual: "Manuale",
-    activate_tab_ai: "AI (Gemini)",
-    activate_task_title_placeholder: "Titolo dell'attività",
-    activate_task_desc_placeholder: "Descrizione (opzionale)",
-    activate_create_task: "Crea Attività",
-    activate_analyze: "Analizza con AI",
-    activate_analyzing: "Analisi in corso…",
-    activate_ai_hint: "Note selezionate:",
-    activate_ai_pick: "Seleziona una proposta",
-
-    // Locale toggle
-    locale_it: "IT",
-    locale_en: "EN",
-
-    // Auth
-    auth_registered_via: "Registrato tramite",
-    auth_email: "email",
-    auth_google: "Google",
-  },
   en: {
     // Consent banner
     consent_message:
@@ -169,5 +85,5 @@ export const translations = {
   },
 } as const;
 
-export type TranslationKey = keyof typeof translations.it;
-export type Locale = keyof typeof translations;
+export type TranslationKey = keyof typeof translations.en;
+export type Locale = "en";

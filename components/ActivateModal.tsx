@@ -5,7 +5,7 @@ import { useMutation, useAction, useQuery } from "convex/react";
 import { motion } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { useLocale } from "@/hooks/useLocale";
+import { useTranslation } from "@/hooks/useLocale";
 import type { NoteDoc } from "@/lib/types";
 
 interface ActivateModalProps {
@@ -15,8 +15,11 @@ interface ActivateModalProps {
 
 type Tab = "manual" | "ai";
 
-export function ActivateModal({ selectedNoteIds, onClose }: ActivateModalProps) {
-  const { t } = useLocale();
+export function ActivateModal({
+  selectedNoteIds,
+  onClose,
+}: ActivateModalProps) {
+  const { t } = useTranslation();
   const createFromNotes = useMutation(api.tasks.createFromNotes);
   const generateProposals = useAction(api.ai.generateProposals);
   const topNotes = useQuery(api.notes.listTopLevel);
@@ -32,7 +35,7 @@ export function ActivateModal({ selectedNoteIds, onClose }: ActivateModalProps) 
   // Pre-fill description if exactly 1 note selected
   const selectedNotes =
     (topNotes as NoteDoc[] | undefined)?.filter((n) =>
-      selectedNoteIds.includes(n._id as Id<"notes">)
+      selectedNoteIds.includes(n._id as Id<"notes">),
     ) ?? [];
 
   // Initialize taskText with note text when 1 note selected
@@ -105,7 +108,9 @@ export function ActivateModal({ selectedNoteIds, onClose }: ActivateModalProps) 
                   : "text-text-muted hover:text-text-primary"
               }`}
             >
-              {tabKey === "manual" ? t("activate_tab_manual") : t("activate_tab_ai")}
+              {tabKey === "manual"
+                ? t("activate_tab_manual")
+                : t("activate_tab_ai")}
             </button>
           ))}
         </div>
@@ -197,9 +202,7 @@ export function ActivateModal({ selectedNoteIds, onClose }: ActivateModalProps) 
         )}
 
         {/* Error */}
-        {error && (
-          <p className="mt-3 text-xs text-semantic-error">{error}</p>
-        )}
+        {error && <p className="mt-3 text-xs text-semantic-error">{error}</p>}
 
         {/* Actions */}
         <div className="flex justify-end gap-3 mt-6">

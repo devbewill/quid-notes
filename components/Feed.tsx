@@ -5,7 +5,7 @@ import { useQuery, useConvexAuth } from "convex/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { useLocale } from "@/hooks/useLocale";
+import { useTranslation } from "@/hooks/useLocale";
 import { cn } from "@/lib/cn";
 import type { NoteDoc, TaskDoc } from "@/lib/types";
 
@@ -485,7 +485,7 @@ export function Feed({
   selectedTaskIds,
   onSelectTask,
 }: FeedProps) {
-  const { t } = useLocale();
+  const { t } = useTranslation();
   const { isAuthenticated } = useConvexAuth();
   const user = useQuery(api.users.current, isAuthenticated ? {} : "skip");
 

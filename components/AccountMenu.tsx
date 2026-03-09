@@ -6,7 +6,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { api } from "@/convex/_generated/api";
-import { useLocale } from "@/hooks/useLocale";
+import { useTranslation } from "@/hooks/useLocale";
 import { ExportDataButton } from "./ExportDataButton";
 import { DeleteAccountModal } from "./DeleteAccountModal";
 import { MarketingToggle } from "./MarketingToggle";
@@ -52,7 +52,7 @@ function MenuItem({
 }
 
 export function AccountMenu() {
-  const { t } = useLocale();
+  const { t } = useTranslation();
   const { signOut } = useAuthActions();
   const user = useQuery(api.users.current);
   const updateProfile = useMutation(api.users.updateProfile);
@@ -89,7 +89,9 @@ export function AccountMenu() {
         <span className="w-7 h-7 rounded-full bg-bg-elevated border border-border-subtle flex items-center justify-center text-xs font-semibold text-text-primary flex-shrink-0">
           {initials}
         </span>
-        <span className="text-sm text-text-primary truncate">{user.name ?? user.email}</span>
+        <span className="text-sm text-text-primary truncate">
+          {user.name ?? user.email}
+        </span>
       </button>
 
       {/* Dropdown panel */}
