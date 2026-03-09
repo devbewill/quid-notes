@@ -238,13 +238,10 @@ export default function SignInPage() {
           <div className="text-center mb-12">
             <Shield className="w-20 h-20 mx-auto mb-6 text-violet-500" />
             <h1 className="font-black text-4xl tracking-tighter text-white uppercase mb-4">
-              Account in
-              <br />
-              Eliminazione
+              Deletion Scheduled
             </h1>
             <p className="text-zinc-400 text-lg leading-relaxed">
-              Il tuo account è attualmente programmato per l&apos;eliminazione
-              definitiva il{" "}
+              Your account will be permanently deleted on{" "}
               <span className="text-white font-medium">
                 {deletionStatus?.deletionScheduledAt ||
                 userWithDeleted?.deletionScheduledAt
@@ -310,7 +307,7 @@ export default function SignInPage() {
           href="/landing-page"
           className="text-zinc-600 hover:text-white transition-colors font-bold text-sm tracking-widest uppercase"
         >
-          ← Torna alla Landing
+          ← come back to Landing
         </Link>
       </div>
 
@@ -343,7 +340,7 @@ export default function SignInPage() {
                   : "text-zinc-500 hover:text-zinc-300"
               }`}
             >
-              {f === "signIn" ? "Accedi" : "Registrati"}
+              {f === "signIn" ? "Login" : "Register"}
             </button>
           ))}
         </div>
@@ -355,7 +352,7 @@ export default function SignInPage() {
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Nome (opzionale)"
+                placeholder="Name (optional)"
                 className="w-full bg-[#0a0a0f] border-2 border-zinc-800 rounded-none px-12 py-4 text-white placeholder:text-zinc-600 outline-none focus:border-violet-500 transition-colors font-mono text-sm"
               />
             </div>
@@ -396,21 +393,21 @@ export default function SignInPage() {
                   className="mt-1 w-5 h-5 border-2 border-zinc-700 bg-transparent rounded-none accent-violet-500 checked:border-violet-500"
                 />
                 <span className="leading-relaxed">
-                  Ho letto e accetto l&apos;{" "}
+                  I have read and accept the{" "}
                   <Link
                     href="/privacy"
                     target="_blank"
                     className="text-violet-400 hover:text-violet-300 underline underline-offset-4"
                   >
-                    Informativa sulla Privacy
+                    Privacy Policy
                   </Link>{" "}
-                  e i{" "}
+                  and{" "}
                   <Link
                     href="/terms"
                     target="_blank"
                     className="text-violet-400 hover:text-violet-300 underline underline-offset-4"
                   >
-                    Termini di Servizio
+                    Terms of Service
                   </Link>
                   .<span className="text-red-500"> *</span>
                 </span>
@@ -424,7 +421,7 @@ export default function SignInPage() {
                   className="mt-1 w-5 h-5 border-2 border-zinc-700 bg-transparent rounded-none accent-violet-500 checked:border-violet-500"
                 />
                 <span className="leading-relaxed">
-                  Accetto di ricevere aggiornamenti sul prodotto via email.
+                  I agree to receive product updates by email
                 </span>
               </label>
             </div>
@@ -446,7 +443,7 @@ export default function SignInPage() {
             disabled={loading}
             className="group w-full bg-violet-600 text-white font-black text-lg uppercase tracking-widest px-6 py-4 hover:bg-violet-500 transition-all border-2 border-transparent hover:border-violet-400 shadow-[6px_6px_0_0_#000] hover:shadow-[10px_10px_0_0_#fff] hover:-translate-x-1 hover:-translate-y-1 disabled:opacity-50 disabled:shadow-none disabled:hover:translate-x-0 disabled:hover:translate-y-0 flex items-center justify-center gap-3"
           >
-            {loading ? "…" : flow === "signIn" ? "Accedi" : "Crea account"}
+            {loading ? "…" : flow === "signIn" ? "Login" : "Sign up"}
             {!loading && (
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             )}
@@ -465,7 +462,7 @@ export default function SignInPage() {
           onClick={handleGoogle}
           className="w-full border-2 border-zinc-800 text-white font-bold text-sm uppercase tracking-wider px-6 py-4 hover:bg-zinc-900 hover:border-zinc-700 transition-all flex items-center justify-center gap-3"
         >
-          Continua con Google <ArrowRight className="w-4 h-4" />
+          Login with Google <ArrowRight className="w-4 h-4" />
         </button>
 
         <div className="mt-12 text-center">
@@ -473,7 +470,7 @@ export default function SignInPage() {
             href="/landing-page"
             className="text-sm font-bold text-zinc-500 hover:text-white uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
           >
-            Scopri QUID Notes <ArrowRight className="w-4 h-4" />
+            Explore QUID <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </motion.div>
